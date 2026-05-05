@@ -54,6 +54,7 @@
 - [x] B13: Remove redundant "seconds" helper text from timing cards to reduce visual clutter.
 - [x] B14: Add subtle corner mandala ornaments to the home screen background for first-pass review (later reverted per feedback).
 - [x] B15: Add `.gitignore` and untrack committed dependency/build/system artifacts (`node_modules`, `dist`, `.DS_Store`).
+- [x] B16: Fix phase voice prompts not playing after countdown until manual pause/resume.
 
 Notes:
 - B01 complete: Session completion now triggers from explicit final-round completion state in the breathing engine instead of depending on elapsed-time threshold matching.
@@ -71,6 +72,7 @@ Notes:
 - B13 complete: Removed the small "seconds" label under each timing slider card because the large value already includes the `s` suffix and the extra unit text added unnecessary clutter.
 - B14 complete: Added cropped mandala line art to the upper-right and lower-left corners of the home screen for review, then removed it per feedback (current state: no mandala on home screen).
 - B15 complete: Added root `.gitignore` and removed previously tracked `node_modules`, `dist`, and `.DS_Store` files from Git index so future commits stay clean and lightweight.
+- B16 complete: Reordered session audio lifecycle so phase voice prompts run before ambient start/resume; this avoids initial phase voice playback being blocked on stricter mobile audio focus/autoplay behavior immediately after countdown.
 
 ## UI Enhancement Tasks
 

@@ -35,14 +35,17 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
 
   const engine = useBreathingEngine(settings, {
     onBeforeSessionStart: async () => {
+      // Intro and countdown have already completed; session starts immediately.
+      // Ambient is started in onBeforePhaseStart so voice prompts can claim audio focus first.
+    },
+    onBeforePhaseStart: async (phase) => {
+      if (settings.voiceEnabled) {
+        await audio.playPhase(phase);
+      }
+
       if (settings.soundEnabled) {
         audio.startAmbient();
       }
-      // Intro and countdown have already completed; session starts immediately
-    },
-    onBeforePhaseStart: async (phase) => {
-      if (!settings.voiceEnabled) return;
-      await audio.playPhase(phase);
     },
     onCount: () => {
       if (settings.soundEnabled) {
@@ -57,10 +60,10 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
       audio.stopTick();
     },
     onResume: () => {
+      audio.resumeVoice();
       if (settings.soundEnabled) {
         audio.resumeAmbient();
       }
-      audio.resumeVoice();
     },
     onComplete: ({ durationSeconds }) => {
       audio.stopTick();
