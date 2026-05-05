@@ -53,6 +53,7 @@
 - [x] B12: Make timing-card tap targets visually obvious so users know the duration value is interactive.
 - [x] B13: Remove redundant "seconds" helper text from timing cards to reduce visual clutter.
 - [x] B14: Add subtle corner mandala ornaments to the home screen background for first-pass review (later reverted per feedback).
+- [x] B15: Add `.gitignore` and untrack committed dependency/build/system artifacts (`node_modules`, `dist`, `.DS_Store`).
 
 Notes:
 - B01 complete: Session completion now triggers from explicit final-round completion state in the breathing engine instead of depending on elapsed-time threshold matching.
@@ -69,6 +70,7 @@ Notes:
 - B12 complete: Styled each timing value as a tinted bordered control with a subtle plus-icon cue so the increment-on-tap behavior is visually discoverable without adding heavy instructional text.
 - B13 complete: Removed the small "seconds" label under each timing slider card because the large value already includes the `s` suffix and the extra unit text added unnecessary clutter.
 - B14 complete: Added cropped mandala line art to the upper-right and lower-left corners of the home screen for review, then removed it per feedback (current state: no mandala on home screen).
+- B15 complete: Added root `.gitignore` and removed previously tracked `node_modules`, `dist`, and `.DS_Store` files from Git index so future commits stay clean and lightweight.
 
 ## UI Enhancement Tasks
 
