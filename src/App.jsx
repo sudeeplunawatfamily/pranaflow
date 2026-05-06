@@ -8,6 +8,7 @@ import PresetsScreen from './components/PresetsScreen';
 import { presets } from './data/presets';
 import useLocalStorage from './hooks/useLocalStorage';
 import { stopGlobalAudio } from './hooks/useAudioGuide';
+import { initAudio, unlockAudio, stopAllAudio as stopTickAudio } from './utils/audioManager';
 import {
   defaultMemory,
   defaultSavedRhythm,
@@ -44,6 +45,12 @@ const primeAudioPlayback = () => {
   } catch {
     // Ignore audio prime runtime errors.
   }
+
+  // Initialize and unlock Howler.js audio context for tick sounds
+  initAudio();
+  unlockAudio().catch(() => {
+    // Ignore audio unlock failures; runtime continues silently.
+  });
 };
 
 export default function App() {
@@ -60,6 +67,7 @@ export default function App() {
   useEffect(() => {
     if (currentScreen !== 'session') {
       stopGlobalAudio();
+      stopTickAudio();
       setSessionPhaseColor(null);
     }
   }, [currentScreen]);

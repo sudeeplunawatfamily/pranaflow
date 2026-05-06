@@ -3,6 +3,7 @@ import { Pause, Play, Square, Waves, Wind } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useAudioGuide from '../hooks/useAudioGuide';
 import useBreathingEngine from '../hooks/useBreathingEngine';
+import { playTick, stopAllAudio as stopTickAudio, setAudioEnabled } from '../utils/audioManager';
 import { phaseConfig } from '../utils/phaseConfig';
 import CharacterBackdrop from './CharacterBackdrop';
 import Header from './Header';
@@ -24,6 +25,7 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   const handleExitSession = () => {
     sessionFlowActiveRef.current = false;
     audio.stopAllAudio();
+     stopTickAudio();
     onEnd?.();
   };
 
@@ -124,9 +126,10 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
         audio.startAmbient();
       }
     },
-    onCount: () => {
+    onCount: (count, phaseDuration) => {
       if (settings.soundEnabled) {
-        audio.playTick();
+        const isLastSecond = count === phaseDuration;
+        playTick(isLastSecond);
       }
     },
     onPause: () => {
@@ -181,6 +184,7 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
           clearTimeout(introTransitionTimeoutRef.current);
           introTransitionTimeoutRef.current = null;
         }
+         stopTickAudio();
       };
     },
     []
@@ -190,6 +194,13 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   useEffect(() => {
     onPhaseChange?.(phaseConfig[engine.currentPhase].color);
   }, [engine.currentPhase]);
+
+    // Monitor sound toggle and update audio manager accordingly
+    useEffect(() => {
+      if (sessionPhase === 'breathing') {
+        setAudioEnabled(settings.soundEnabled);
+      }
+    }, [settings.soundEnabled, sessionPhase]);
 
   const phase = phaseConfig[engine.currentPhase];
   const PhaseIcon = phaseIcons[engine.currentPhase];

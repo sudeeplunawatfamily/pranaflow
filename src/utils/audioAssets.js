@@ -8,7 +8,7 @@ export const audioAssets = {
     exhale: '/assets/audio/phases/exhale.mp3',
   },
   ticks: {
-    tick: '/assets/audio/ticks/tick.mp3',
+    tick: '/sounds/wood-tick.mp3',
   },
   ambient: {
     background: '/assets/audio/ambient/ambient.mp3',

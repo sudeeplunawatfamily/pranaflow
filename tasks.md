@@ -106,10 +106,13 @@ Notes:
 - B30 complete: Added a matching compact top-right Day/Night icon on Home and wired it to the shared persisted theme toggle handler.
 - B31 complete: Replaced hardcoded slate session timer/progress surfaces (`#334155` tracks and inactive pips) with day/night-aware values and softened Day-mode progress card shadow.
 - B32 complete: Replaced Completion screen hardcoded dark card/icon/mood/home-button surfaces with day/night-aware values and wired Completion to use the shared `theme` prop.
-- B33 complete: Added day/night halo tokens in AppShell, switched CharacterBackdrop to use halo variables, and made setup character halo gradient explicitly theme-aware.
 
+## Audio Feature Tasks
 ## UI Enhancement Tasks
+- [x] F01: Implement reliable session audio using Howler.js with per-second wooden tick sounds.
 
+Notes:
+- F01 complete: Installed Howler.js dependency. Created `src/utils/audioManager.js` with Howler.js-based tick playback. Integrated audioManager into BreathingSession to play regular tick each second, final/high-pitched tick on the last second of each phase. Audio initializes on Begin Session and unlocks browser audio context for mobile. Sound toggle enables/disables tick playback. Audio stops completely when exiting session (Back/End/Navigation). Audio file: `/public/sounds/wood-tick.mp3` (0.25 volume regular, 0.35 volume final at 1.18x playback rate). Build validates successfully.
 - [x] U01: Add decorative leaf-sketch background and stronger white hue behind character images.
 - [x] U02: Increase white hue intensity directly behind PNG character images.
 - [x] U03: Increase white hue brightness one more level.
@@ -163,6 +166,7 @@ Notes:
 - [x] S03: Beautify session progress area — wrap in soft white card with shadow, add phase-colored glow ring to round badge, add "Rnd" label inside badge, make progress bar taller (8px) with gradient fill, add round pip dots below bar (shown when rounds ≤ 10).
 - [x] S04: Increase session character image size from 280px to 310px (backdrop unchanged).
 - [x] S05: Raise ambient audio volume from 0.18 to 0.27.
+- [x] S06: Increase Howler-based session tick volume so regular and final ticks are easier to hear.
 
 ## Docker / Infrastructure Fix (done by Claude Code, 2026-05-03)
 
@@ -170,6 +174,7 @@ Notes:
 
 Notes:
 - S01–S05 complete: All session screen improvements applied to BreathingSession.jsx; ambient volume updated in useAudioGuide.js.
+- S06 complete: Increased centralized Howler tick volume defaults in audioManager.js; final tick remains louder than the regular tick.
 - I01 complete: docker/nginx.conf updated; requires `docker compose up --build` + "Clear site data" in browser DevTools on first deploy after change.
 
 ## Improvement Tasks (Session 2)

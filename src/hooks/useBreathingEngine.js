@@ -145,7 +145,7 @@ export default function useBreathingEngine(settings, callbacks = {}) {
 
           for (let count = 1; count <= duration; count += 1) {
             setCurrentCount(count);
-            callbacksRef.current.onCount?.(count);
+            callbacksRef.current.onCount?.(count, duration, phase);
 
             const shouldContinue = await waitOneSecond(token);
             if (!shouldContinue) return;

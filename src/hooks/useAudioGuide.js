@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { audioAssets } from '../utils/audioAssets';
 
 const VOICE_VOLUME = 0.92;
-const TICK_VOLUME = 0.45;
+const TICK_VOLUME = 0.65;
 const AMBIENT_VOLUME = 0.27;
 
 let globalIntroAudio = null;
