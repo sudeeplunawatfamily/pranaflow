@@ -1,37 +1,106 @@
 import { motion } from 'framer-motion';
 import { Pause, Play, Square, Waves, Wind } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useAudioGuide from '../hooks/useAudioGuide';
 import useBreathingEngine from '../hooks/useBreathingEngine';
 import { phaseConfig } from '../utils/phaseConfig';
 import CharacterBackdrop from './CharacterBackdrop';
 import Header from './Header';
-import PrimaryButton from './PrimaryButton';
 
 const phaseIcons = { inhale: Wind, hold: Pause, exhale: Waves };
 
 export default function BreathingSession({ settings, onComplete, onEnd, onPhaseChange }) {
+  const INTRO_MIN_MS = 1400;
+  const INTRO_WATCHDOG_MS = 12000;
   const audio = useAudioGuide();
   const [sessionPhase, setSessionPhase] = useState('intro'); // 'intro' | 'countdown' | 'breathing'
   const [countdown, setCountdown] = useState(3);
   const introPlayedRef = useRef(false);
+  const introSkippedRef = useRef(false);
+  const introTransitionTimeoutRef = useRef(null);
+  const sessionFlowActiveRef = useRef(true);
+
+  const handleExitSession = () => {
+    sessionFlowActiveRef.current = false;
+    audio.stopAllAudio();
+    onEnd?.();
+  };
+
+  const handleSkipIntro = () => {
+    introSkippedRef.current = true;
+    if (introTransitionTimeoutRef.current) {
+      clearTimeout(introTransitionTimeoutRef.current);
+      introTransitionTimeoutRef.current = null;
+    }
+    audio.stopIntro();
+    setCountdown(3);
+    setSessionPhase('countdown');
+  };
+
+  const transitionToCountdown = useCallback((delayMs = 0) => {
+    if (introTransitionTimeoutRef.current) {
+      clearTimeout(introTransitionTimeoutRef.current);
+    }
+
+    introTransitionTimeoutRef.current = setTimeout(() => {
+      introTransitionTimeoutRef.current = null;
+
+      if (introSkippedRef.current || !sessionFlowActiveRef.current) {
+        return;
+      }
+
+      audio.stopIntro();
+      setCountdown(3);
+      setSessionPhase('countdown');
+    }, Math.max(0, delayMs));
+  }, [audio.stopIntro]);
+
+  const withTimeout = (promise, timeoutMs, fallback = 'timeout') =>
+    Promise.race([
+      promise,
+      new Promise((resolve) => {
+        setTimeout(() => resolve(fallback), timeoutMs);
+      }),
+    ]);
 
   // Play intro audio first, then transition to countdown phase
   useEffect(() => {
-    if (sessionPhase === 'intro' && !introPlayedRef.current && settings.voiceEnabled) {
+    let watchdogTimer = null;
+
+    if (sessionPhase === 'intro' && !introPlayedRef.current) {
+      introSkippedRef.current = false;
       introPlayedRef.current = true;
-      audio.playIntro().then(() => {
-        // Intro finished; start countdown
-        setSessionPhase('countdown');
-      }).catch(() => {
-        // Intro failed or unavailable; skip to countdown
-        setSessionPhase('countdown');
+      const introStartedAt = Date.now();
+
+      const runIntro = async () => {
+        await withTimeout(audio.playIntro(), INTRO_WATCHDOG_MS, 'timeout');
+
+        const elapsed = Date.now() - introStartedAt;
+        transitionToCountdown(INTRO_MIN_MS - elapsed);
+      };
+
+      watchdogTimer = setTimeout(() => {
+        const elapsed = Date.now() - introStartedAt;
+        transitionToCountdown(INTRO_MIN_MS - elapsed);
+      }, INTRO_WATCHDOG_MS + 250);
+
+      runIntro().catch(() => {
+        const elapsed = Date.now() - introStartedAt;
+        transitionToCountdown(INTRO_MIN_MS - elapsed);
       });
-    } else if (sessionPhase === 'intro' && !settings.voiceEnabled) {
-      // Voice disabled; skip intro and start countdown immediately
-      setSessionPhase('countdown');
     }
-  }, [sessionPhase, settings.voiceEnabled, audio]);
+
+    return () => {
+      if (watchdogTimer) {
+        clearTimeout(watchdogTimer);
+        watchdogTimer = null;
+      }
+      if (introTransitionTimeoutRef.current) {
+        clearTimeout(introTransitionTimeoutRef.current);
+        introTransitionTimeoutRef.current = null;
+      }
+    };
+  }, [sessionPhase, audio.playIntro, transitionToCountdown]);
 
   const engine = useBreathingEngine(settings, {
     onBeforeSessionStart: async () => {
@@ -39,11 +108,18 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
       // Ambient is started in onBeforePhaseStart so voice prompts can claim audio focus first.
     },
     onBeforePhaseStart: async (phase) => {
+      if (!sessionFlowActiveRef.current) return;
+
       if (settings.voiceEnabled) {
-        await audio.playPhase(phase);
+        let result = await audio.playPhase(phase);
+
+        // Retry once for transient playback failures before continuing.
+        if (result === 'play-failed' || result === 'runtime-error' || result === 'error') {
+          result = await audio.playPhase(phase);
+        }
       }
 
-      if (settings.soundEnabled) {
+      if (sessionFlowActiveRef.current && settings.soundEnabled) {
         audio.startAmbient();
       }
     },
@@ -66,13 +142,8 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
       }
     },
     onComplete: ({ durationSeconds }) => {
-      audio.stopTick();
-      audio.stopAmbient();
-      audio.stopVoice();
-
-      if (settings.voiceEnabled || settings.soundEnabled) {
-        audio.playComplete();
-      }
+      sessionFlowActiveRef.current = false;
+      audio.stopAllAudio();
 
       onComplete?.({ durationSeconds });
     },
@@ -97,15 +168,22 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
     if (sessionPhase === 'breathing') {
       engine.start(); // eslint-disable-line react-hooks/exhaustive-deps
     }
-
-    return () => {
-      if (sessionPhase === 'breathing') {
-        engine.end(); // eslint-disable-line react-hooks/exhaustive-deps
-        audio.stopTick(); // eslint-disable-line react-hooks/exhaustive-deps
-        audio.stopAmbient(); // eslint-disable-line react-hooks/exhaustive-deps
-      }
-    };
   }, [sessionPhase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(
+    () => {
+      sessionFlowActiveRef.current = true;
+
+      return () => {
+        sessionFlowActiveRef.current = false;
+        if (introTransitionTimeoutRef.current) {
+          clearTimeout(introTransitionTimeoutRef.current);
+          introTransitionTimeoutRef.current = null;
+        }
+      };
+    },
+    []
+  );
 
   // Notify parent of phase color for background tint
   useEffect(() => {
@@ -119,7 +197,18 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   if (sessionPhase === 'intro') {
     return (
       <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex min-h-[calc(100dvh-32px)] flex-col">
-        <Header showBack onBack={onEnd} showHelp />
+        <Header showBack onBack={handleExitSession} showHelp />
+        <div className="flex justify-end px-2 pt-1">
+          <button
+            type="button"
+            onClick={handleSkipIntro}
+            className="inline-flex h-8 items-center gap-1 rounded-full border border-[#CFE6FB] bg-gradient-to-b from-white to-[#F1F8FF] px-3 text-[11px] font-bold text-[#3E6B99] shadow-[0_8px_18px_rgba(36,135,234,0.12)] transition hover:brightness-[1.02] active:scale-[0.97]"
+            aria-label="Skip intro"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-[#2487EA]" />
+            Skip
+          </button>
+        </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center">
           <motion.img
             src="/assets/icons/logo_lotus.svg"
@@ -145,7 +234,7 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   if (sessionPhase === 'countdown') {
     return (
       <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex min-h-[calc(100dvh-32px)] flex-col">
-        <Header showBack onBack={onEnd} showHelp />
+        <Header showBack onBack={handleExitSession} showHelp />
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
           <p className="text-[14px] font-bold uppercase tracking-widest text-[#657899]">Get ready</p>
           <motion.p
@@ -166,7 +255,7 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   // Breathing screen: active session
   return (
     <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex min-h-[calc(100dvh-32px)] flex-col">
-      <Header showBack onBack={onEnd} showHelp />
+      <Header showBack onBack={handleExitSession} showHelp />
 
       {/* Progress card */}
       <div className="relative z-[1] flex items-center gap-3 rounded-2xl bg-white/90 px-3 py-3 shadow-[0_8px_22px_rgba(36,135,234,0.12)]">
@@ -242,15 +331,19 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
             animate={
               engine.isPaused
-                ? { width: 294, height: 294, opacity: 0.35 }
+                ? { width: 294, height: 294, opacity: 0.32 }
                 : {
-                    width: engine.currentPhase === 'inhale' ? 324 : engine.currentPhase === 'exhale' ? 258 : [286, 302, 286],
-                    height: engine.currentPhase === 'inhale' ? 324 : engine.currentPhase === 'exhale' ? 258 : [286, 302, 286],
-                    opacity: engine.currentPhase === 'hold' ? [0.75, 0.4, 0.75] : engine.currentPhase === 'inhale' ? 0.75 : 0.4,
+                    width: engine.currentPhase === 'inhale' ? 332 : engine.currentPhase === 'exhale' ? 268 : [296, 316, 296],
+                    height: engine.currentPhase === 'inhale' ? 332 : engine.currentPhase === 'exhale' ? 268 : [296, 316, 296],
+                    opacity: engine.currentPhase === 'hold' ? [0.5, 0.72, 0.5] : engine.currentPhase === 'inhale' ? 0.62 : 0.42,
                   }
             }
             initial={{ width: 294, height: 294, opacity: 0.4 }}
-            style={{ borderColor: `${phase.color}99` }}
+            style={{
+              borderColor: `${phase.color}B3`,
+              backgroundColor: `${phase.color}22`,
+              boxShadow: `0 0 16px ${phase.color}55`,
+            }}
             transition={{
               duration: engine.isPaused ? 0.5 : engine.currentPhase === 'hold' ? 2.5 : engine.phaseDuration,
               ease: 'easeInOut',
@@ -307,12 +400,25 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
 
         <p className="mt-1 text-center text-base text-[#657899]">{phase.instruction}</p>
 
+        <div className="mt-3 w-[180px]">
+          <p className="mb-1 text-center text-[10px] font-bold uppercase tracking-wider text-[#7A8EAB]">Phase progress</p>
+          <div className="h-1.5 overflow-hidden rounded-full bg-[#DDEEFE]/90">
+            <div
+              className="h-full rounded-full transition-all duration-200"
+              style={{
+                width: `${engine.phaseProgress * 100}%`,
+                backgroundColor: phase.color,
+                boxShadow: `0 0 6px ${phase.color}88`,
+              }}
+            />
+          </div>
+        </div>
+
       </div>
 
-      <div className="grid grid-cols-2 gap-3 pt-2">
-        <PrimaryButton
-          icon={engine.isPaused ? Play : Pause}
-          variant="secondary"
+      <div className="mt-auto flex items-center justify-between px-1 pt-3">
+        <button
+          type="button"
           onClick={() => {
             if (engine.isPaused) {
               engine.resume();
@@ -320,22 +426,23 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
               engine.pause();
             }
           }}
-          className="h-[51px]"
+          aria-label={engine.isPaused ? 'Resume session' : 'Pause session'}
+          className="grid h-11 w-11 place-items-center rounded-full border border-[#D6EAFF] bg-white text-[#2487EA] shadow-[0_8px_18px_rgba(36,135,234,0.12)] transition active:scale-[0.96]"
         >
-          {engine.isPaused ? 'Resume' : 'Pause'}
-        </PrimaryButton>
-        <PrimaryButton
-          icon={Square}
-          variant="danger"
+          {engine.isPaused ? <Play size={16} /> : <Pause size={16} />}
+        </button>
+
+        <button
+          type="button"
           onClick={() => {
-            audio.stopAllAudio();
             engine.end();
-            onEnd?.();
+            handleExitSession();
           }}
-          className="h-[51px]"
+          aria-label="End session"
+          className="grid h-11 w-11 place-items-center rounded-full border border-[#F74D61] bg-[#F74D61] text-white shadow-[0_8px_18px_rgba(247,77,97,0.22)] transition active:scale-[0.96]"
         >
-          End
-        </PrimaryButton>
+          <Square size={15} />
+        </button>
       </div>
     </motion.section>
   );

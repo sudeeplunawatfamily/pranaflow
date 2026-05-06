@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Minus, Music, Pause, Plus, Play, RefreshCcw, Volume2, Waves, Wind } from 'lucide-react';
+import { useMemo } from 'react';
 import { formatTime } from '../utils/formatTime';
 import Header from './Header';
 import PrimaryButton from './PrimaryButton';
@@ -10,10 +11,48 @@ const phaseCards = [
   { key: 'exhaleSeconds', label: 'Breathe Out', color: '#20B8C4', Icon: Waves, ariaLabel: 'Breathe out seconds' },
 ];
 
-export default function BreathingSetup({ settings, setSettings, onBack, onBeginSession }) {
+export default function BreathingSetup({ settings, setSettings, onBack, onBeginSession, onSaveRhythm }) {
   const update = (key, value) => setSettings((prev) => ({ ...prev, [key]: value }));
   const rhythmTotal = settings.inhaleSeconds + settings.holdSeconds + settings.exhaleSeconds;
   const estimatedSeconds = settings.rounds * rhythmTotal;
+
+  const rhythmMeaning = useMemo(() => {
+    if (settings.exhaleSeconds > settings.inhaleSeconds) return 'Longer exhales to calm your body';
+    if (settings.inhaleSeconds > settings.exhaleSeconds) return 'Longer inhales to gently energize your mind';
+    return 'Balanced breathing for relaxation';
+  }, [settings.exhaleSeconds, settings.inhaleSeconds]);
+
+  const meaningPill = useMemo(() => {
+    if (settings.exhaleSeconds > settings.inhaleSeconds) {
+      return {
+        Icon: Waves,
+        textColor: '#0B5E72',
+        iconColor: '#20B8C4',
+        borderColor: '#BFEFF3',
+        bg: 'linear-gradient(135deg, rgba(32,184,196,0.14) 0%, rgba(32,184,196,0.06) 55%, rgba(255,255,255,0.88) 100%)',
+      };
+    }
+
+    if (settings.inhaleSeconds > settings.exhaleSeconds) {
+      return {
+        Icon: Wind,
+        textColor: '#184B8A',
+        iconColor: '#2487EA',
+        borderColor: '#CFE6FB',
+        bg: 'linear-gradient(135deg, rgba(36,135,234,0.14) 0%, rgba(36,135,234,0.06) 55%, rgba(255,255,255,0.88) 100%)',
+      };
+    }
+
+    return {
+      Icon: Pause,
+      textColor: '#5B3B95',
+      iconColor: '#8755E8',
+      borderColor: '#E3D8FF',
+      bg: 'linear-gradient(135deg, rgba(135,85,232,0.14) 0%, rgba(135,85,232,0.06) 55%, rgba(255,255,255,0.88) 100%)',
+    };
+  }, [settings.exhaleSeconds, settings.inhaleSeconds]);
+
+  const MeaningIcon = meaningPill.Icon;
 
   return (
     <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex min-h-[calc(100dvh-32px)] flex-col pb-1">
@@ -22,6 +61,17 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
 
         <h2 className="font-display text-[29px] font-extrabold leading-none text-[#071D55]">Set your breathing rhythm</h2>
         <p className="mt-1 text-[15px] text-[#657899]">Adjust the timing for each phase</p>
+        <div
+          className="flex items-center gap-2 rounded-xl border px-3 py-2.5 shadow-[0_8px_18px_rgba(36,135,234,0.08)]"
+          style={{ borderColor: meaningPill.borderColor, background: meaningPill.bg }}
+        >
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/85" style={{ color: meaningPill.iconColor }}>
+            <MeaningIcon size={14} />
+          </span>
+          <p className="text-[13px] font-semibold leading-tight" style={{ color: meaningPill.textColor }}>
+            {rhythmMeaning}
+          </p>
+        </div>
 
         {/* Proportional rhythm bar — segment width reflects actual phase duration */}
         <div className="mt-1.5 w-full rounded-2xl bg-white p-2.5 shadow-[0_8px_22px_rgba(36,135,234,0.14)]">
@@ -59,7 +109,7 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
             className="absolute left-1/2 top-1/2 h-[190px] w-[190px] -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{ background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.96) 28%, rgba(220,240,255,0.72) 58%, rgba(155,210,250,0.18) 82%, transparent 100%)' }}
           />
-            <img src="/assets/images/Inhale_pose.png" alt="Breathing setup pose" className="relative z-10 w-[210px] object-contain" />
+          <img src="/assets/images/Inhale_pose.png" alt="Breathing setup pose" className="relative z-10 w-[210px] object-contain" />
         </div>
 
         <div className="mt-0.5 grid grid-cols-3 gap-1.5">
@@ -183,6 +233,9 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
       <div className="mt-2 pt-1">
         <PrimaryButton icon={Play} onClick={onBeginSession} className="h-[51px] text-[16px]">
           Begin Session
+        </PrimaryButton>
+        <PrimaryButton icon={RefreshCcw} variant="secondary" onClick={onSaveRhythm} className="mt-2 h-[44px] text-[14px]">
+          Save Rhythm
         </PrimaryButton>
         <p className="mt-1.5 text-center text-[12px] text-[#657899]">
           ≈ {formatTime(estimatedSeconds)} total

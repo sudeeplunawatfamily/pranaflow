@@ -6,7 +6,7 @@ export const presets = [
     inhaleSeconds: 4,
     holdSeconds: 4,
     exhaleSeconds: 6,
-    description: 'Relax and slow down',
+    description: 'Longer exhales to calm your nervous system',
     color: 'blue',
   },
   {
@@ -16,7 +16,7 @@ export const presets = [
     inhaleSeconds: 4,
     holdSeconds: 2,
     exhaleSeconds: 4,
-    description: 'Reset your attention',
+    description: 'Balanced breathing to improve attention',
     color: 'aqua',
   },
   {
@@ -26,7 +26,7 @@ export const presets = [
     inhaleSeconds: 4,
     holdSeconds: 7,
     exhaleSeconds: 8,
-    description: 'Wind down gently',
+    description: 'Slows your body for deep rest',
     color: 'purple',
   },
   {
@@ -36,7 +36,7 @@ export const presets = [
     inhaleSeconds: 3,
     holdSeconds: 3,
     exhaleSeconds: 3,
-    description: 'Start simple',
+    description: 'Simple rhythm to get started',
     color: 'orange',
   },
   {
@@ -46,7 +46,7 @@ export const presets = [
     inhaleSeconds: 5,
     holdSeconds: 5,
     exhaleSeconds: 5,
-    description: 'Equal breathing rhythm',
+    description: 'Equal breathing for stability',
     color: 'teal',
   },
 ];

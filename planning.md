@@ -1227,3 +1227,119 @@ Key implementation decisions:
 - Match screenshot style while keeping responsive implementation.
 - Prioritize custom breathing setup as central feature.
 - Maintain calm, premium, mobile-native UX.
+
+## Scope Addendum — May 2026 (Approved Change Set)
+
+This section defines newly approved scope changes to be implemented next.
+
+### 1) Home Screen
+
+Copy update:
+- Replace "Find your rhythm and settle in" with: "Slow your breath. Calm your mind." (or equivalent microcopy with same intent)
+
+Last-session module update:
+- Remove the generic time-only label.
+- Replace with a rhythm-forward summary line, for example:
+  - "Resume your last rhythm: Inhale-Hold-Exhale (e.g., 2-2-2)"
+
+Home quick-start guidance:
+- Do not add intent chips on Home.
+- Keep Home focused on two entry paths:
+  - Start Custom Breathing
+  - Explore Presets
+- Presets are the quick-start mechanism for guided rhythms.
+
+### 2) Setup Screen (Custom Rhythm)
+
+Meaning header (new):
+- Add a dynamic interpretation line above controls, for example:
+  - "Balanced breathing for relaxation"
+  - "Longer exhales to calm your body"
+
+Breathing preview animation (new):
+- Add a small preview circle that expands/holds/contracts according to current inhale/hold/exhale values.
+
+Total duration calculation:
+- Ensure estimated duration uses:
+  - (inhale + hold + exhale) x rounds
+
+Save rhythm action (new):
+- Add "Save Rhythm" action.
+- Persist saved custom rhythm in local storage.
+- Surface saved rhythm in presets as "Your Rhythm".
+
+### 3) Presets Screen
+
+Update preset descriptions to benefit-led copy:
+- Calm -> "Longer exhales to calm your nervous system"
+- Focus -> "Balanced breathing to improve attention"
+- Sleep -> "Slows your body for deep rest"
+- Beginner -> "Simple rhythm to get started"
+- Balance -> "Equal breathing for stability"
+
+### 4) Breathing Session Screen
+
+Breathing animation (critical):
+- Ensure visible phase-driven breath animation:
+  - Inhale: expanding circle
+  - Hold: subtle glow/pulse
+  - Exhale: contracting circle
+
+Phase instruction copy update:
+- Inhale: "Breathe in..."
+- Hold: "Hold..."
+- Exhale: "Release..."
+
+Phase progress indicator:
+- Add a per-phase progress indicator (circular or subtle linear) in addition to existing overall session progress.
+
+### 5) Completion Screen
+
+Metrics update:
+- Ensure completion metrics include:
+  - Correct total time
+  - Total breaths
+  - Rhythm used
+
+Insight line (new):
+- Add one dynamic insight based on rhythm balance:
+  - If exhale > inhale: "Longer exhales help calm your nervous system"
+  - If inhale > exhale: "Longer inhales increase alertness"
+  - If inhale === exhale: "Balanced breathing improves focus"
+
+CTA updates:
+- Replace/expand actions to include:
+  - "Repeat this rhythm"
+  - "Try deeper version (+1 sec hold)"
+  - "Save this rhythm"
+
+### 6) Global Changes
+
+Local memory enhancements:
+- Ensure persistence includes:
+  - Last rhythm
+  - Last intent (optional)
+  - Voice preference
+
+Smart suggestions on Home:
+- Show contextual suggestion such as:
+  - "Try a quick reset (1 min)"
+  - or "Continue your last rhythm"
+
+### 7) Explicitly Out of Scope
+
+Do not add:
+- Login/signup
+- Streak tracking
+- Heavy analytics dashboard
+- Excessive preset expansion
+
+### 8) Implementation Priority Order
+
+Implement in this sequence:
+1. Breathing animation
+2. Completion insight
+3. Home quick-start clarity (without intent chips)
+4. Fix total duration
+5. Preset descriptions
+6. Microcopy updates

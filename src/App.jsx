@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AppShell from './components/AppShell';
 import BreathingSetup from './components/BreathingSetup';
 import BreathingSession from './components/BreathingSession';
@@ -7,7 +7,14 @@ import HomeScreen from './components/HomeScreen';
 import PresetsScreen from './components/PresetsScreen';
 import { presets } from './data/presets';
 import useLocalStorage from './hooks/useLocalStorage';
-import { defaultSettings, normalizeSettings, STORAGE_KEYS } from './utils/storage';
+import { stopGlobalAudio } from './hooks/useAudioGuide';
+import {
+  defaultMemory,
+  defaultSavedRhythm,
+  defaultSettings,
+  normalizeSettings,
+  STORAGE_KEYS,
+} from './utils/storage';
 
 const createSessionId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -17,13 +24,43 @@ const createSessionId = () => {
   return `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 };
 
+const primeAudioPlayback = () => {
+  try {
+    const primer = new Audio('/assets/audio/ui/chime.mp3');
+    primer.volume = 0;
+    const playPromise = primer.play();
+
+    if (playPromise && typeof playPromise.then === 'function') {
+      playPromise
+        .then(() => {
+          primer.pause();
+          primer.currentTime = 0;
+        })
+        .catch(() => {
+          // Ignore autoplay-prime failures; runtime continues silently.
+        });
+    }
+  } catch {
+    // Ignore audio prime runtime errors.
+  }
+};
+
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [persistedSettings, setPersistedSettings] = useLocalStorage(STORAGE_KEYS.settings, defaultSettings);
   const [settings, setSettings] = useState(() => normalizeSettings(persistedSettings));
   const [sessions, setSessions] = useLocalStorage(STORAGE_KEYS.sessions, []);
+  const [savedRhythm, setSavedRhythm] = useLocalStorage(STORAGE_KEYS.savedRhythm, defaultSavedRhythm);
+  const [memory, setMemory] = useLocalStorage(STORAGE_KEYS.memory, defaultMemory);
   const [sessionResult, setSessionResult] = useState({ durationSeconds: 0, moodAfter: undefined });
   const [sessionPhaseColor, setSessionPhaseColor] = useState(null);
+
+  useEffect(() => {
+    if (currentScreen !== 'session') {
+      stopGlobalAudio();
+      setSessionPhaseColor(null);
+    }
+  }, [currentScreen]);
 
   const setAndPersistSettings = (updater) => {
     setSettings((prev) => {
@@ -38,10 +75,42 @@ export default function App() {
   const goPresets = () => setCurrentScreen('presets');
   const goHome = () => setCurrentScreen('home');
 
+  const buildRhythm = (source) => ({
+    inhaleSeconds: source.inhaleSeconds,
+    holdSeconds: source.holdSeconds,
+    exhaleSeconds: source.exhaleSeconds,
+  });
+
+  const rememberSessionEntry = (source) => {
+    setMemory((prev) => ({
+      ...prev,
+      lastRhythm: buildRhythm(source),
+    }));
+  };
+
+  const saveRhythm = (source, name = 'Your Rhythm') => {
+    setSavedRhythm({
+      id: 'your-rhythm',
+      name,
+      pattern: `${source.inhaleSeconds}-${source.holdSeconds}-${source.exhaleSeconds}`,
+      inhaleSeconds: source.inhaleSeconds,
+      holdSeconds: source.holdSeconds,
+      exhaleSeconds: source.exhaleSeconds,
+      description: 'Your saved breathing pattern',
+      color: 'blue',
+      isCustom: true,
+    });
+  };
+
   return (
     <AppShell phaseColor={sessionPhaseColor}>
       {currentScreen === 'home' ? (
-        <HomeScreen onStartCustom={goSetup} onExplorePresets={goPresets} sessions={sessions} />
+        <HomeScreen
+          onStartCustom={goSetup}
+          onExplorePresets={goPresets}
+          memory={memory}
+          sessions={sessions}
+        />
       ) : null}
 
       {currentScreen === 'setup' ? (
@@ -49,13 +118,19 @@ export default function App() {
           settings={settings}
           setSettings={setAndPersistSettings}
           onBack={goHome}
-          onBeginSession={() => setCurrentScreen('session')}
+          onSaveRhythm={() => saveRhythm(settings)}
+          onBeginSession={() => {
+            rememberSessionEntry(settings);
+            primeAudioPlayback();
+            setCurrentScreen('session');
+          }}
         />
       ) : null}
 
       {currentScreen === 'presets' ? (
         <PresetsScreen
           presets={presets}
+          savedRhythm={savedRhythm}
           onBack={goHome}
           onCreateCustom={goSetup}
           onSelectPreset={(preset) => {
@@ -75,11 +150,9 @@ export default function App() {
           settings={settings}
           onPhaseChange={setSessionPhaseColor}
           onEnd={() => {
-            setSessionPhaseColor(null);
             setCurrentScreen('setup');
           }}
           onComplete={({ durationSeconds }) => {
-            setSessionPhaseColor(null);
             const completed = {
               id: createSessionId(),
               date: new Date().toISOString(),
@@ -109,7 +182,10 @@ export default function App() {
               return [{ ...first, moodAfter }, ...rest];
             });
           }}
-          onRepeat={() => setCurrentScreen('session')}
+          onRepeat={() => {
+            rememberSessionEntry(settings);
+            setCurrentScreen('session');
+          }}
           onChangeRhythm={() => setCurrentScreen('setup')}
           onHome={goHome}
         />

@@ -20,7 +20,9 @@ const colorMap = {
   teal: '#18AEB8',
 };
 
-export default function PresetsScreen({ presets, onBack, onSelectPreset, onCreateCustom }) {
+export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPreset, onCreateCustom }) {
+  const allPresets = savedRhythm ? [savedRhythm, ...presets] : presets;
+
   return (
     <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="pb-2">
       <Header showBack onBack={onBack} showHelp />
@@ -32,7 +34,7 @@ export default function PresetsScreen({ presets, onBack, onSelectPreset, onCreat
       </CharacterBackdrop>
 
       <div className="mt-4 space-y-3">
-        {presets.map((preset) => {
+        {allPresets.map((preset) => {
           const Icon = iconMap[preset.id] || Waves;
           const color = colorMap[preset.color] || '#2487EA';
 

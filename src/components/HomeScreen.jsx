@@ -1,11 +1,17 @@
 import { motion } from 'framer-motion';
 import { Play, Sparkles } from 'lucide-react';
-import { formatTime } from '../utils/formatTime';
 import CharacterBackdrop from './CharacterBackdrop';
 import PrimaryButton from './PrimaryButton';
 
-export default function HomeScreen({ onStartCustom, onExplorePresets, sessions = [] }) {
+export default function HomeScreen({ onStartCustom, onExplorePresets, memory, sessions = [] }) {
   const lastSession = sessions[0];
+  const resumeRhythm = memory?.lastRhythm || (lastSession
+    ? {
+        inhaleSeconds: lastSession.inhaleSeconds,
+        holdSeconds: lastSession.holdSeconds,
+        exhaleSeconds: lastSession.exhaleSeconds,
+      }
+    : null);
 
   return (
     <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="relative flex min-h-[calc(100dvh-32px)] flex-col pb-2 text-center">
@@ -17,8 +23,8 @@ export default function HomeScreen({ onStartCustom, onExplorePresets, sessions =
       <div className="relative z-[1] mt-6 space-y-2 px-3 text-center">
         <p className="font-display text-[15px] font-bold uppercase tracking-[0.28em] text-[#2487EA]/80">Daily breath ritual</p>
         <h2 className="font-display text-[32px] font-extrabold leading-[1.02] text-[#071D55]">
-          Find your rhythm
-          <span className="block text-[#2487EA]">and settle in</span>
+          Slow your breath.
+          <span className="block text-[#2487EA]">Calm your mind.</span>
         </h2>
         <p className="mx-auto max-w-[285px] text-[14px] leading-6 text-[#657899]">Choose your own breathing pattern or begin with a guided preset designed for calm, focus, or sleep.</p>
       </div>
@@ -33,12 +39,27 @@ export default function HomeScreen({ onStartCustom, onExplorePresets, sessions =
       </div>
 
       <div className="relative z-[1] mt-3 flex w-full flex-col items-center gap-2">
-        {lastSession && (
-          <p className="rounded-full border border-[#DCEEFF] bg-white/88 px-3.5 py-1.5 text-[12px] font-medium text-[#5E7497] shadow-[0_8px_18px_rgba(36,135,234,0.08)]">
-            Last session: {formatTime(lastSession.durationSeconds)} · {lastSession.rounds} round{lastSession.rounds !== 1 ? 's' : ''}{lastSession.moodAfter ? ` · ${lastSession.moodAfter}` : ''}
-          </p>
+        {resumeRhythm && (
+          <div className="flex items-center gap-2 rounded-full border border-[#DCEEFF] bg-white/90 px-2.5 py-1.5 shadow-[0_8px_18px_rgba(36,135,234,0.08)]">
+            <span className="rounded-full bg-[#EAF6FF] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#5E87B8]">
+              Last rhythm
+            </span>
+            <span className="text-[12px] font-bold text-[#6A7F9D]">
+              <span className="text-[#2487EA]">I</span>
+              <span>-</span>
+              <span className="text-[#8755E8]">H</span>
+              <span>-</span>
+              <span className="text-[#20B8C4]">E</span>
+              <span className="ml-1.5 text-[#5E7497]">(</span>
+              <span className="text-[#2487EA]">{resumeRhythm.inhaleSeconds}</span>
+              <span className="text-[#5E7497]">-</span>
+              <span className="text-[#8755E8]">{resumeRhythm.holdSeconds}</span>
+              <span className="text-[#5E7497]">-</span>
+              <span className="text-[#20B8C4]">{resumeRhythm.exhaleSeconds}</span>
+              <span className="text-[#5E7497]">)</span>
+            </span>
+          </div>
         )}
-        <p className="text-[12px] font-semibold tracking-wide text-[#7A8EAB]">No setup needed to begin</p>
       </div>
 
       <div className="mt-4 w-full space-y-2.5 pt-1">

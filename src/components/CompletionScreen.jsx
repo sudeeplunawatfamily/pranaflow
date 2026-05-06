@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Clock, Home, Leaf, Moon, Pause, RefreshCcw, RotateCcw, Smile, Target, Waves, Wind } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import useAudioGuide from '../hooks/useAudioGuide';
 import { formatTime } from '../utils/formatTime';
 import CharacterBackdrop from './CharacterBackdrop';
 import PrimaryButton from './PrimaryButton';
@@ -16,6 +17,13 @@ const SPARKLE_COLORS = ['#2487EA', '#20B8C4', '#8755E8', '#FF8A2A', '#2487EA', '
 
 export default function CompletionScreen({ settings, durationSeconds, onRepeat, onChangeRhythm, onHome, onMoodChange }) {
   const [selectedMood, setSelectedMood] = useState(null);
+  const audio = useAudioGuide();
+
+  useEffect(() => {
+    if (settings.voiceEnabled || settings.soundEnabled) {
+      audio.playComplete();
+    }
+  }, [audio, settings.soundEnabled, settings.voiceEnabled]);
 
   const sparkles = useMemo(() =>
     Array.from({ length: 12 }, (_, i) => ({
@@ -91,6 +99,7 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
       </section>
 
       <section className="mt-3 rounded-3xl bg-white p-3 text-left shadow-[0_12px_30px_rgba(36,135,234,0.12)]">
+        <p className="text-[13px] font-semibold text-[#6B83A4]">Take a moment. How do you feel?</p>
         <p className="text-base font-bold text-[#071D55]">How do you feel now?</p>
         <div className="mt-2 grid grid-cols-4 gap-2">
           {moodConfig.map(({ name, Icon, color }) => {
@@ -122,16 +131,23 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
       <div className="mt-auto space-y-2.5 pt-3">
         <PrimaryButton icon={RefreshCcw} onClick={onRepeat} className="h-[60px]">
           <span className="flex flex-col items-start leading-tight">
-            <span>Repeat Session</span>
+            <span>Breathe again</span>
             <span className="text-[11px] font-semibold opacity-75">{settings.inhaleSeconds}s · {settings.holdSeconds}s · {settings.exhaleSeconds}s · {settings.rounds} rounds</span>
           </span>
         </PrimaryButton>
         <PrimaryButton icon={RotateCcw} variant="secondary" onClick={onChangeRhythm} className="h-[46px]">
           Change Rhythm
         </PrimaryButton>
-        <PrimaryButton icon={Home} variant="secondary" onClick={onHome} className="h-[46px]">
-          Home
-        </PrimaryButton>
+        <div className="flex justify-center pt-0.5">
+          <button
+            type="button"
+            onClick={onHome}
+            aria-label="Go to Home"
+            className="grid h-10 w-10 place-items-center rounded-full border border-[#D6EAFF] bg-white text-[#6A85A8] shadow-[0_8px_18px_rgba(36,135,234,0.08)] transition active:scale-[0.97]"
+          >
+            <Home size={16} />
+          </button>
+        </div>
       </div>
     </motion.section>
   );

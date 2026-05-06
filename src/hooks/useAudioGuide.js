@@ -5,25 +5,100 @@ const VOICE_VOLUME = 0.92;
 const TICK_VOLUME = 0.45;
 const AMBIENT_VOLUME = 0.27;
 
+let globalIntroAudio = null;
+let globalVoiceAudio = null;
+let globalTickAudio = null;
+let globalAmbientAudio = null;
+let globalIntroResolver = null;
+let globalVoiceResolver = null;
+let globalIntroToken = 0;
+let globalVoiceToken = 0;
+
 function stopInstance(audio) {
   if (!audio) return;
   audio.pause();
   audio.currentTime = 0;
 }
 
+function resolveGlobalVoice(result) {
+  if (!globalVoiceResolver) return;
+  const resolver = globalVoiceResolver;
+  globalVoiceResolver = null;
+  resolver(result);
+}
+
+function resolveGlobalIntro(result) {
+  if (!globalIntroResolver) return;
+  const resolver = globalIntroResolver;
+  globalIntroResolver = null;
+  resolver(result);
+}
+
+export function stopGlobalAudio() {
+  if (globalIntroAudio) {
+    globalIntroAudio.pause();
+    globalIntroAudio.currentTime = 0;
+  }
+  globalIntroAudio = null;
+  globalIntroToken += 1;
+  resolveGlobalIntro('stopped');
+
+  if (globalVoiceAudio) {
+    globalVoiceAudio.pause();
+    globalVoiceAudio.currentTime = 0;
+  }
+  globalVoiceAudio = null;
+  globalVoiceToken += 1;
+  resolveGlobalVoice('stopped');
+
+  stopInstance(globalTickAudio);
+  globalTickAudio = null;
+
+  stopInstance(globalAmbientAudio);
+  globalAmbientAudio = null;
+}
+
 export default function useAudioGuide() {
-  const voiceAudioRef = useRef(null);
-  const tickAudioRef = useRef(null);
-  const ambientAudioRef = useRef(null);
-  const voiceResolverRef = useRef(null);
-  const voiceTokenRef = useRef(0);
+  const introAudioRef = useRef(globalIntroAudio);
+  const voiceAudioRef = useRef(globalVoiceAudio);
+  const tickAudioRef = useRef(globalTickAudio);
+  const ambientAudioRef = useRef(globalAmbientAudio);
+  const introResolverRef = useRef(globalIntroResolver);
+  const voiceResolverRef = useRef(globalVoiceResolver);
+  const introTokenRef = useRef(globalIntroToken);
+  const voiceTokenRef = useRef(globalVoiceToken);
+
+  const resolveActiveIntro = useCallback((result) => {
+    resolveGlobalIntro(result);
+    introResolverRef.current = globalIntroResolver;
+  }, []);
 
   const resolveActiveVoice = useCallback((result) => {
-    if (!voiceResolverRef.current) return;
-    const resolver = voiceResolverRef.current;
-    voiceResolverRef.current = null;
-    resolver(result);
+    resolveGlobalVoice(result);
+    voiceResolverRef.current = globalVoiceResolver;
   }, []);
+
+  const stopIntro = useCallback(
+    ({ reset = true, interrupt = true } = {}) => {
+      const intro = introAudioRef.current;
+      if (intro) {
+        intro.pause();
+        if (reset) intro.currentTime = 0;
+      }
+
+      if (reset) {
+        introAudioRef.current = null;
+        globalIntroAudio = null;
+      }
+
+      if (interrupt) {
+        introTokenRef.current += 1;
+        globalIntroToken = introTokenRef.current;
+        resolveActiveIntro('stopped');
+      }
+    },
+    [resolveActiveIntro]
+  );
 
   const stopVoice = useCallback(
     ({ reset = true, interrupt = true } = {}) => {
@@ -35,10 +110,12 @@ export default function useAudioGuide() {
 
       if (reset) {
         voiceAudioRef.current = null;
+        globalVoiceAudio = null;
       }
 
       if (interrupt) {
         voiceTokenRef.current += 1;
+        globalVoiceToken = voiceTokenRef.current;
         resolveActiveVoice('stopped');
       }
     },
@@ -88,16 +165,20 @@ export default function useAudioGuide() {
           audio.volume = volume;
           voiceAudioRef.current = audio;
           voiceResolverRef.current = resolve;
+          globalVoiceAudio = audio;
+          globalVoiceResolver = resolve;
 
           audio.onended = () => {
             if (token !== voiceTokenRef.current) return;
             voiceAudioRef.current = null;
+            globalVoiceAudio = null;
             resolveActiveVoice('ended');
           };
 
           audio.onerror = () => {
             if (token !== voiceTokenRef.current) return;
             voiceAudioRef.current = null;
+            globalVoiceAudio = null;
             resolveActiveVoice('error');
           };
 
@@ -106,6 +187,7 @@ export default function useAudioGuide() {
             playPromise.catch(() => {
               if (token !== voiceTokenRef.current) return;
               voiceAudioRef.current = null;
+              globalVoiceAudio = null;
               resolveActiveVoice('play-failed');
             });
           }
@@ -115,7 +197,57 @@ export default function useAudioGuide() {
           }
         } catch {
           voiceAudioRef.current = null;
+          globalVoiceAudio = null;
           resolveActiveVoice('runtime-error');
+        }
+      });
+    }
+
+    if (channel === 'intro') {
+      stopIntro({ reset: true, interrupt: true });
+      const token = introTokenRef.current;
+
+      return new Promise((resolve) => {
+        try {
+          const audio = new Audio(src);
+          audio.loop = loop;
+          audio.volume = volume;
+          introAudioRef.current = audio;
+          introResolverRef.current = resolve;
+          globalIntroAudio = audio;
+          globalIntroResolver = resolve;
+
+          audio.onended = () => {
+            if (token !== introTokenRef.current) return;
+            introAudioRef.current = null;
+            globalIntroAudio = null;
+            resolveActiveIntro('ended');
+          };
+
+          audio.onerror = () => {
+            if (token !== introTokenRef.current) return;
+            introAudioRef.current = null;
+            globalIntroAudio = null;
+            resolveActiveIntro('error');
+          };
+
+          const playPromise = audio.play();
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+              if (token !== introTokenRef.current) return;
+              introAudioRef.current = null;
+              globalIntroAudio = null;
+              resolveActiveIntro('play-failed');
+            });
+          }
+
+          if (!waitForEnd) {
+            resolveActiveIntro('started');
+          }
+        } catch {
+          introAudioRef.current = null;
+          globalIntroAudio = null;
+          resolveActiveIntro('runtime-error');
         }
       });
     }
@@ -136,7 +268,7 @@ export default function useAudioGuide() {
     }
 
     return Promise.resolve('started');
-  }, [resolveActiveVoice, stopVoice]);
+  }, [resolveActiveIntro, resolveActiveVoice, stopIntro, stopVoice]);
 
   const playVoice = useCallback(
     (src) => playAudio(src, { channel: 'voice', volume: VOICE_VOLUME, waitForEnd: true }),
@@ -144,8 +276,8 @@ export default function useAudioGuide() {
   );
 
   const playIntro = useCallback(
-    () => playVoice(audioAssets.intro.welcome),
-    [playVoice]
+    () => playAudio(audioAssets.intro.welcome, { channel: 'intro', volume: VOICE_VOLUME, waitForEnd: true }),
+    [playAudio]
   );
 
   const playPhase = useCallback(
@@ -162,6 +294,7 @@ export default function useAudioGuide() {
       const tick = new Audio(src);
       tick.volume = TICK_VOLUME;
       tickAudioRef.current = tick;
+      globalTickAudio = tick;
       const playPromise = tick.play();
 
       if (playPromise && typeof playPromise.catch === 'function') {
@@ -177,6 +310,7 @@ export default function useAudioGuide() {
   const stopTick = useCallback(() => {
     stopInstance(tickAudioRef.current);
     tickAudioRef.current = null;
+    globalTickAudio = null;
   }, []);
 
   const startAmbient = useCallback(() => {
@@ -189,6 +323,7 @@ export default function useAudioGuide() {
         ambient.loop = true;
         ambient.volume = AMBIENT_VOLUME;
         ambientAudioRef.current = ambient;
+        globalAmbientAudio = ambient;
       }
 
       const playPromise = ambientAudioRef.current.play();
@@ -225,6 +360,7 @@ export default function useAudioGuide() {
   const stopAmbient = useCallback(() => {
     stopInstance(ambientAudioRef.current);
     ambientAudioRef.current = null;
+    globalAmbientAudio = null;
   }, []);
 
   const playComplete = useCallback(
@@ -238,10 +374,16 @@ export default function useAudioGuide() {
   );
 
   const stopAllAudio = useCallback(() => {
-    stopVoice({ reset: true, interrupt: true });
-    stopTick();
-    stopAmbient();
-  }, [stopAmbient, stopTick, stopVoice]);
+    stopGlobalAudio();
+    introAudioRef.current = globalIntroAudio;
+    voiceAudioRef.current = globalVoiceAudio;
+    tickAudioRef.current = globalTickAudio;
+    ambientAudioRef.current = globalAmbientAudio;
+    introResolverRef.current = globalIntroResolver;
+    voiceResolverRef.current = globalVoiceResolver;
+    introTokenRef.current = globalIntroToken;
+    voiceTokenRef.current = globalVoiceToken;
+  }, []);
 
   return {
     playAudio,
@@ -255,6 +397,7 @@ export default function useAudioGuide() {
     pauseAmbient,
     resumeAmbient,
     stopAmbient,
+    stopIntro,
     stopVoice,
     pauseVoice,
     resumeVoice,

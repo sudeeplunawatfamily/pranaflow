@@ -1,6 +1,8 @@
 export const STORAGE_KEYS = {
   settings: 'pranaflow_settings',
   sessions: 'pranaflow_sessions',
+  savedRhythm: 'pranaflow_saved_rhythm',
+  memory: 'pranaflow_memory',
 };
 
 export const defaultSettings = {
@@ -10,6 +12,12 @@ export const defaultSettings = {
   rounds: 5,
   voiceEnabled: true,
   soundEnabled: true,
+};
+
+export const defaultSavedRhythm = null;
+
+export const defaultMemory = {
+  lastRhythm: null,
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));

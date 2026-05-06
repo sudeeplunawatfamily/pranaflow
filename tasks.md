@@ -55,6 +55,18 @@
 - [x] B14: Add subtle corner mandala ornaments to the home screen background for first-pass review (later reverted per feedback).
 - [x] B15: Add `.gitignore` and untrack committed dependency/build/system artifacts (`node_modules`, `dist`, `.DS_Store`).
 - [x] B16: Fix phase voice prompts not playing after countdown until manual pause/resume.
+- [x] B17: Enforce strict session-scoped audio so all audio stops immediately outside session flow.
+- [x] B18: Fix ambient audio race on End and polish intro Skip control styling.
+- [x] B19: Stabilize intro welcome flow so fast intro-audio failure does not instantly skip the welcome screen.
+- [x] B20: Prevent strict-mode cleanup from cutting intro audio on welcome screen mount.
+- [x] B21: Restore voice-guidance reliability with one-time retry for intro and phase prompts.
+- [x] B22: Decouple intro audio from voice guidance and ambient controls.
+- [x] B23: Improve voice-guidance playback reliability by priming audio on Begin Session user tap.
+- [x] B24: Add watchdog timeouts for intro and phase voice waits so session flow never stalls on missing audio end events.
+- [x] B25: Fix intro replay/stall regression by simplifying intro playback to single-run with watchdog transition.
+- [x] B26: Refactor phase voice guidance to direct-start playback path (no end-event dependency).
+- [x] B27: Fix strict-mode session-active flag regression that disabled phase voice callbacks.
+- [x] B28: Restore phase voice gating so each phase timer starts after its voice prompt finishes.
 
 Notes:
 - B01 complete: Session completion now triggers from explicit final-round completion state in the breathing engine instead of depending on elapsed-time threshold matching.
@@ -73,6 +85,18 @@ Notes:
 - B14 complete: Added cropped mandala line art to the upper-right and lower-left corners of the home screen for review, then removed it per feedback (current state: no mandala on home screen).
 - B15 complete: Added root `.gitignore` and removed previously tracked `node_modules`, `dist`, and `.DS_Store` files from Git index so future commits stay clean and lightweight.
 - B16 complete: Reordered session audio lifecycle so phase voice prompts run before ambient start/resume; this avoids initial phase voice playback being blocked on stricter mobile audio focus/autoplay behavior immediately after countdown.
+- B17 complete: Added a global audio stop guard tied to app screen state so any transition away from the session screen (Back/Home/End/Completion) immediately stops voice, tick, and ambient audio with no carry-over.
+- B18 complete: Added a session-flow active guard in `BreathingSession` so pending async phase callbacks cannot restart ambient after End/navigation; refreshed intro Skip button to a compact gradient pill with stronger visual affordance.
+- B19 complete: Added a minimum intro display window and guarded delayed transition to countdown so the welcome screen remains visible and no longer disappears immediately when intro audio resolves/fails too quickly.
+- B20 complete: Removed session mount/unmount audio-stop cleanup in `BreathingSession` (which fired during React dev strict-mode remount), preserving intro playback while keeping explicit exit/completion/app-level non-session audio stops.
+- B21 complete: Added one-time retry logic for intro and per-phase voice clips when `Audio.play()` returns transient failures (`play-failed`, `runtime-error`, `error`) so guidance is more resilient across browser audio-focus/autoplay edge cases.
+- B22 complete: Added an independent intro audio channel in `useAudioGuide`, made intro flow independent of voice/sound toggles, and changed intro Skip to stop only intro audio while phase guidance remains controlled by Voice Guidance toggle and ambient/tick by Sound toggle.
+- B23 complete: Added a muted audio prime on Begin Session (same user gesture) to unlock browser audio playback for intro and phase voice prompts on stricter autoplay-policy environments; also fixed `useAudioGuide` channel callback dependencies to avoid stale closure issues.
+- B24 complete: Wrapped intro and phase voice awaits with timeout guards plus one retry so countdown and breathing progression continue even if an audio `onended` signal never arrives; this fixes cases where intro appears finished but countdown does not auto-advance.
+- B25 complete: Removed intro replay-on-timeout behavior and stabilized transition cleanup/dependencies in `BreathingSession`, preventing intro infinite-loop behavior and restoring automatic intro -> countdown progression.
+- B26 complete: Updated `useAudioGuide.playPhase()` to a direct playback path that returns on successful start instead of waiting on `ended`, and aligned session phase-start logic with immediate guidance playback plus one retry.
+- B27 complete: Updated `BreathingSession` mount/unmount effect to set `sessionFlowActiveRef.current = true` on setup (not cleanup only), preventing strict-mode remount behavior from leaving the flag stuck false and silently bypassing phase voice playback.
+- B28 complete: Reverted `useAudioGuide.playPhase()` to end-aware voice playback (`playVoice`) so `useBreathingEngine` waits for phase prompt completion before beginning per-second counts/ticks.
 
 ## UI Enhancement Tasks
 
@@ -174,16 +198,64 @@ Notes:
 - Home screen follow-up: Simplified the hero layout into a stable centered block after the first pass caused a layout regression; kept the new hierarchy/CTA treatment while removing the riskier absolute hero grounding structure.
 - DF11 complete: Increased "PranaFlow" heading size (`36px` -> `44px`) and added extra vertical spacing before subheading/hero content so the brand lockup remains the primary focal point.
 
+## Scope Addendum Tasks (May 2026)
+
+- [x] SA01: Add/verify critical phase breathing animation behavior in session (expand-hold-contract clarity).
+- [x] SA02: Add dynamic completion insight line based on inhale/exhale balance.
+- [x] SA03: Home quick-start direction revised to rely on presets instead of intent chips.
+- [x] SA04: Ensure setup estimated duration strictly uses `(inhale + hold + exhale) x rounds`.
+- [x] SA05: Update preset descriptions to benefit-led copy (Calm/Focus/Sleep/Beginner/Balance).
+- [x] SA06: Apply microcopy updates across screens (home headline, phase text, completion CTA labels).
+- [x] SA07: Replace Home last-session summary with rhythm-forward "resume last rhythm" messaging.
+- [x] SA08: Add setup dynamic meaning header tied to current rhythm pattern.
+- [x] SA09: Add setup mini breathing preview animation that reflects current phase timings.
+- [x] SA10: Add "Save Rhythm" flow and persist as "Your Rhythm" preset.
+- [x] SA11: Add per-phase progress indicator on session screen (in addition to total progress).
+- [x] SA12: Expand completion metrics to include total breaths and rhythm used.
+- [x] SA13: Add completion actions for "Repeat this rhythm", "Try deeper version (+1 sec hold)", and "Save this rhythm".
+- [x] SA14: Add/confirm local memory persistence for last rhythm, last intent (optional), and voice preference.
+- [x] SA15: Add smart Home suggestion module (quick reset or continue last rhythm).
+
+Notes:
+- SA01-SA06 follow the explicitly requested priority order.
+- SA07-SA15 capture the remaining approved scope additions from the planning addendum.
+- Keep explicit non-goals unchanged: no login/signup, no streak tracking, no heavy analytics dashboard, no excessive preset expansion.
+- SA01 complete: Breathing session now includes stronger phase-readability via an added animated inner glow layer while preserving expand/hold/contract ring behavior.
+- SA02 complete: Completion screen now shows a dynamic insight line derived from inhale/exhale balance and displays total breaths.
+- SA03 complete: Removed the intent-chip approach and kept Home focused on custom setup plus presets as the only quick-start paths.
+- SA04 complete: Setup estimate already uses `settings.rounds * (inhale + hold + exhale)` and was validated as canonical.
+- SA05 complete: Preset descriptions were updated to benefit-led wording for calm/focus/sleep/beginner/balance.
+- SA06 complete: Home headline, phase instruction copy, and completion primary CTA label were updated to the approved microcopy direction.
+- SA07 complete: Home now displays rhythm-forward resume copy in the format "Inhale-Hold-Exhale (x-y-z)".
+- SA08 complete: Setup now shows a dynamic meaning header that adapts to inhale/exhale balance.
+- SA08 refinement: Styled the dynamic meaning header as a tinted insight pill with adaptive icon/color treatment for calming (exhale-heavy), energizing (inhale-heavy), and balanced rhythms.
+- SA09 complete: Setup now includes an animated mini breathing preview that cycles inhale->hold->exhale with durations derived from current settings.
+- SA09 refinement: Replaced setup character/backdrop area with the improved functional preview (phase label, live countdown, and rhythm chips) so the section is guidance-first instead of decorative.
+- SA10 complete: Added Save Rhythm actions; saved custom rhythm is persisted and surfaced in presets as "Your Rhythm".
+- SA11 complete: Added a per-phase progress bar in the session content area while preserving total session progress UI.
+- SA12 complete: Completion metrics include rhythm details and total breaths count.
+- SA13 complete: Completion CTAs now include "Repeat this rhythm", "Try deeper version (+1 sec hold)", and "Save this rhythm" (plus existing navigation actions).
+- SA12-SA13 refinement: Completion was intentionally simplified for emotional closure: removed total-breaths and insight line, reduced actions to primary (Breathe again), secondary (Change Rhythm), and tertiary text Home.
+- SA13 refinement: Updated tertiary Home action to a compact circular icon button for a cleaner low-emphasis exit control.
+- SA14 complete: Added local memory persistence for `lastRhythm`; voice preference remains persisted via settings storage.
+- SA15 complete: Home suggestion behavior was simplified further; the extra suggestion line was removed and Home now keeps only the rhythm-forward resume chip when relevant.
+
 ## Documentation Tasks
 
 - [x] D01: Add detailed decorative background system guidance to planning and Copilot instructions.
 - [x] D02: Create root README with setup, scripts, mobile LAN run instructions, and Docker notes.
 - [x] D03: Add executable Docker setup files (prod and optional dev variants) and align README commands.
+- [x] D04: Create `detailed_pranaflow.md` as a full project handoff brief for external assistant context.
+- [x] D05: Add high-signal code snippet appendix to `detailed_pranaflow.md` for external assistant handoff quality.
+- [x] D06: Refresh `detailed_pranaflow.md` to reflect post-scope-addendum implementation state.
 
 Notes:
 - D01 complete: Added a detailed decorative background system spec covering halo glow, leaves, sparkles, waves, bottom lotus, layering, and screen-specific usage to both planning and Copilot instructions.
 - D02 complete: Added README.md with project overview, prerequisites, run/build commands, localStorage/audio behavior, mobile-on-LAN testing, and Windows Docker guidance.
 - D03 complete: Added Dockerfile, Dockerfile.dev, docker-compose.yml, docker-compose.dev.yml, .dockerignore, docker/nginx.conf, and updated README with executable Docker commands.
+- D04 complete: Added `detailed_pranaflow.md` documenting architecture, state flow, screen behavior, timer/audio orchestration, storage schema, assets, run commands, and current pending design follow-ups.
+- D05 complete: Added a snippet appendix with compact, behavior-critical extracts (routing, breathing loop, intro/countdown orchestration, audio sequencing, storage normalization, and presets contract) plus safe-modification and regression-risk notes.
+- D06 complete: Updated `detailed_pranaflow.md` to match current code behavior (intent-chip direct starts, saved rhythm + memory persistence, setup insight pill + character restoration, simplified session ring + phase progress, completion metrics/insight/expanded CTAs).
 
 Notes:
 - U01 complete: Added reusable character backdrop with layered white glow, subtle sparkles, and side leaf-sketch SVG elements, applied to Home, Setup, Presets, Session, and Completion screens.
