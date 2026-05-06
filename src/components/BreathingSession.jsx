@@ -9,9 +9,10 @@ import Header from './Header';
 
 const phaseIcons = { inhale: Wind, hold: Pause, exhale: Waves };
 
-export default function BreathingSession({ settings, onComplete, onEnd, onPhaseChange }) {
+export default function BreathingSession({ settings, onComplete, onEnd, onPhaseChange, theme = 'night', onToggleTheme }) {
   const INTRO_MIN_MS = 1400;
   const INTRO_WATCHDOG_MS = 12000;
+  const isNight = theme === 'night';
   const audio = useAudioGuide();
   const [sessionPhase, setSessionPhase] = useState('intro'); // 'intro' | 'countdown' | 'breathing'
   const [countdown, setCountdown] = useState(3);
@@ -192,20 +193,30 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
 
   const phase = phaseConfig[engine.currentPhase];
   const PhaseIcon = phaseIcons[engine.currentPhase];
+  const sessionUi = {
+    progressCardShadow: isNight ? '0 8px 22px rgba(15,23,42,0.22)' : '0 8px 22px rgba(36,135,234,0.14)',
+    roundBadgeBg: isNight
+      ? 'color-mix(in srgb, var(--theme-bg-app) 88%, #000)'
+      : 'color-mix(in srgb, var(--theme-bg-app) 84%, white)',
+    progressTrackBg: isNight ? 'rgba(51,65,85,0.85)' : '#DDEEFE',
+    phaseTrackBg: isNight ? 'rgba(51,65,85,0.90)' : '#DDEEFE',
+    pipInactive: isNight ? '#334155' : '#BFDDF6',
+  };
 
   // Intro screen: listening to intro audio
   if (sessionPhase === 'intro') {
     return (
       <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex min-h-[calc(100dvh-32px)] flex-col">
-        <Header showBack onBack={handleExitSession} showHelp />
+        <Header showBack onBack={handleExitSession} showHelp theme={theme} onToggleTheme={onToggleTheme} />
         <div className="flex justify-end px-2 pt-1">
           <button
             type="button"
             onClick={handleSkipIntro}
-            className="inline-flex h-8 items-center gap-1 rounded-full border border-[#CFE6FB] bg-gradient-to-b from-white to-[#F1F8FF] px-3 text-[11px] font-bold text-[#3E6B99] shadow-[0_8px_18px_rgba(36,135,234,0.12)] transition hover:brightness-[1.02] active:scale-[0.97]"
+            className="inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[11px] font-bold shadow-[0_8px_18px_rgba(15,23,42,0.2)] transition hover:brightness-[1.04] active:scale-[0.97]"
+            style={{ borderColor: 'var(--theme-surface-border)', backgroundColor: 'var(--theme-surface)', color: 'var(--theme-text-secondary)' }}
             aria-label="Skip intro"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-[#2487EA]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[#60A5FA]" />
             Skip
           </button>
         </div>
@@ -218,10 +229,10 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
             className="h-16 w-16 opacity-80"
           />
           <div className="space-y-2">
-            <p className="text-[28px] font-extrabold leading-tight text-[#071D55]">
+            <p className="text-[28px] font-extrabold leading-tight" style={{ color: 'var(--theme-text-primary)' }}>
               Welcome to PranaFlow
             </p>
-            <p className="text-[20px] font-bold text-[#2487EA]">
+            <p className="text-[20px] font-bold text-[#60A5FA]">
               "Breathe is life, let's master it"
             </p>
           </div>
@@ -234,19 +245,19 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   if (sessionPhase === 'countdown') {
     return (
       <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex min-h-[calc(100dvh-32px)] flex-col">
-        <Header showBack onBack={handleExitSession} showHelp />
+        <Header showBack onBack={handleExitSession} showHelp theme={theme} onToggleTheme={onToggleTheme} />
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <p className="text-[14px] font-bold uppercase tracking-widest text-[#657899]">Get ready</p>
+          <p className="text-[14px] font-bold uppercase tracking-widest" style={{ color: 'var(--theme-text-secondary)' }}>Get ready</p>
           <motion.p
             key={countdown}
             initial={{ scale: 1.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="font-display text-[120px] font-extrabold leading-none text-[#2487EA]"
+            className="font-display text-[120px] font-extrabold leading-none text-[#60A5FA]"
           >
             {countdown}
           </motion.p>
-          <p className="text-[15px] text-[#657899]">Find a comfortable position</p>
+          <p className="text-[15px]" style={{ color: 'var(--theme-text-secondary)' }}>Find a comfortable position</p>
         </div>
       </motion.section>
     );
@@ -255,17 +266,25 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   // Breathing screen: active session
   return (
     <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex min-h-[calc(100dvh-32px)] flex-col">
-      <Header showBack onBack={handleExitSession} showHelp />
+      <Header showBack onBack={handleExitSession} showHelp theme={theme} onToggleTheme={onToggleTheme} />
 
       {/* Progress card */}
-      <div className="relative z-[1] flex items-center gap-3 rounded-2xl bg-white/90 px-3 py-3 shadow-[0_8px_22px_rgba(36,135,234,0.12)]">
+      <div
+        className="relative z-[1] flex items-center gap-3 rounded-2xl border px-3 py-3"
+        style={{
+          borderColor: 'var(--theme-surface-border)',
+          backgroundColor: 'var(--theme-surface)',
+          boxShadow: sessionUi.progressCardShadow,
+        }}
+      >
 
         {/* Round badge — number + glow ring */}
         <div
-          className="grid h-[58px] w-[58px] shrink-0 place-items-center rounded-full border-[3px] bg-white"
+          className="grid h-[58px] w-[58px] shrink-0 place-items-center rounded-full border-[3px]"
           style={{
+            backgroundColor: sessionUi.roundBadgeBg,
             borderColor: phase.color,
-            boxShadow: `0 0 0 4px ${phase.color}1a, 0 4px 14px ${phase.color}44`,
+            boxShadow: `0 0 0 4px ${phase.color}24, 0 0 16px ${phase.color}60`,
           }}
         >
           <div className="flex flex-col items-center leading-none">
@@ -279,21 +298,21 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
         <div className="min-w-0 flex-1">
           {/* Round count label */}
           <div className="flex items-baseline justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#657899]">Session Progress</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-text-secondary)' }}>Session Progress</span>
             <span className="text-[13px] font-bold">
               <span style={{ color: phase.color }}>{engine.currentRound}</span>
-              <span className="font-normal text-[#657899]"> / {settings.rounds}</span>
+              <span className="font-normal" style={{ color: 'var(--theme-text-secondary)' }}> / {settings.rounds}</span>
             </span>
           </div>
 
           {/* Progress bar — gradient fill with glow */}
-          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#DDEEFE]/80">
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full" style={{ backgroundColor: sessionUi.progressTrackBg }}>
             <div
               className="h-full rounded-full transition-all duration-1000"
               style={{
                 width: `${engine.totalProgress * 100}%`,
                 background: `linear-gradient(90deg, ${phase.color}88 0%, ${phase.color} 100%)`,
-                boxShadow: `0 0 8px ${phase.color}99`,
+                boxShadow: `0 0 10px ${phase.color}aa`,
               }}
             />
           </div>
@@ -309,7 +328,7 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
                     key={i}
                     className="h-1.5 flex-1 rounded-full transition-all duration-500"
                     style={{
-                      backgroundColor: done || active ? phase.color : '#DDEEFE',
+                      backgroundColor: done || active ? phase.color : sessionUi.pipInactive,
                       opacity: done ? 0.55 : 1,
                       boxShadow: active ? `0 0 6px ${phase.color}88` : 'none',
                     }}
@@ -398,17 +417,17 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
           {engine.currentCount}
         </motion.p>
 
-        <p className="mt-1 text-center text-base text-[#657899]">{phase.instruction}</p>
+        <p className="mt-1 text-center text-base" style={{ color: 'var(--theme-text-secondary)' }}>{phase.instruction}</p>
 
         <div className="mt-3 w-[180px]">
-          <p className="mb-1 text-center text-[10px] font-bold uppercase tracking-wider text-[#7A8EAB]">Phase progress</p>
-          <div className="h-1.5 overflow-hidden rounded-full bg-[#DDEEFE]/90">
+          <p className="mb-1 text-center text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--theme-text-secondary)' }}>Phase progress</p>
+          <div className="h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: sessionUi.phaseTrackBg }}>
             <div
               className="h-full rounded-full transition-all duration-200"
               style={{
                 width: `${engine.phaseProgress * 100}%`,
                 backgroundColor: phase.color,
-                boxShadow: `0 0 6px ${phase.color}88`,
+                boxShadow: `0 0 9px ${phase.color}aa`,
               }}
             />
           </div>
@@ -427,7 +446,8 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
             }
           }}
           aria-label={engine.isPaused ? 'Resume session' : 'Pause session'}
-          className="grid h-11 w-11 place-items-center rounded-full border border-[#D6EAFF] bg-white text-[#2487EA] shadow-[0_8px_18px_rgba(36,135,234,0.12)] transition active:scale-[0.96]"
+          className="grid h-11 w-11 place-items-center rounded-full border shadow-[0_8px_18px_rgba(15,23,42,0.22)] transition active:scale-[0.96]"
+          style={{ borderColor: 'var(--theme-surface-border)', backgroundColor: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
         >
           {engine.isPaused ? <Play size={16} /> : <Pause size={16} />}
         </button>
@@ -439,7 +459,7 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
             handleExitSession();
           }}
           aria-label="End session"
-          className="grid h-11 w-11 place-items-center rounded-full border border-[#F74D61] bg-[#F74D61] text-white shadow-[0_8px_18px_rgba(247,77,97,0.22)] transition active:scale-[0.96]"
+          className="grid h-11 w-11 place-items-center rounded-full border border-[#EF4444] bg-gradient-to-b from-[#B91C1C] to-[#DC2626] text-white shadow-[0_0_0_1px_rgba(239,68,68,0.36),0_0_18px_rgba(239,68,68,0.25)] transition active:scale-[0.96]"
         >
           <Square size={15} />
         </button>

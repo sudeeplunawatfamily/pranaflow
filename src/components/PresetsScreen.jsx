@@ -20,14 +20,14 @@ const colorMap = {
   teal: '#18AEB8',
 };
 
-export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPreset, onCreateCustom }) {
+export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPreset, onCreateCustom, theme = 'night', onToggleTheme }) {
   const allPresets = savedRhythm ? [savedRhythm, ...presets] : presets;
 
   return (
     <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="pb-2">
-      <Header showBack onBack={onBack} showHelp />
-      <h2 className="font-display relative z-[1] text-[34px] font-extrabold leading-none text-[#071D55]">Recommended Presets</h2>
-      <p className="relative z-[1] mt-2 text-[18px] text-[#657899]">Choose a rhythm based on how you want to feel</p>
+      <Header showBack onBack={onBack} showHelp theme={theme} onToggleTheme={onToggleTheme} />
+      <h2 className="font-display relative z-[1] text-[34px] font-extrabold leading-none" style={{ color: 'var(--theme-text-primary)' }}>Recommended Presets</h2>
+      <p className="relative z-[1] mt-2 text-[18px]" style={{ color: 'var(--theme-text-secondary)' }}>Choose a rhythm based on how you want to feel</p>
 
       <CharacterBackdrop className="mt-5" glowSizeClass="h-56 w-56">
           <img src="/assets/images/Inhale_pose.png" alt="Breathing presets pose" className="relative z-10 mx-auto w-[245px] object-contain" />
@@ -36,7 +36,7 @@ export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPr
       <div className="mt-4 space-y-3">
         {allPresets.map((preset) => {
           const Icon = iconMap[preset.id] || Waves;
-          const color = colorMap[preset.color] || '#2487EA';
+          const color = colorMap[preset.color] || '#60A5FA';
 
           return (
             <motion.button
@@ -44,19 +44,24 @@ export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPr
               key={preset.id}
               type="button"
               onClick={() => onSelectPreset(preset)}
-              className="flex w-full items-center gap-3 rounded-3xl bg-white p-4 text-left shadow-[0_10px_24px_rgba(36,135,234,0.13)] border-l-4"
-              style={{ borderLeftColor: color }}
+              className="flex w-full items-center gap-3 rounded-3xl p-4 text-left border border-l-4"
+              style={{
+                borderLeftColor: color,
+                borderColor: 'var(--theme-surface-border)',
+                backgroundColor: 'var(--theme-surface)',
+                boxShadow: '0 10px 24px rgba(15,23,42,0.2)',
+              }}
             >
               <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full" style={{ color, backgroundColor: `${color}1f` }}>
                 <Icon size={26} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-lg font-extrabold text-[#071D55]">
-                  {preset.name} <span className="font-bold text-[#657899]">{preset.pattern}</span>
+                <span className="block text-lg font-extrabold" style={{ color: 'var(--theme-text-primary)' }}>
+                  {preset.name} <span className="font-bold" style={{ color: 'var(--theme-text-secondary)' }}>{preset.pattern}</span>
                 </span>
-                <span className="block truncate text-sm text-[#657899]">{preset.description}</span>
+                <span className="block truncate text-sm" style={{ color: 'var(--theme-text-secondary)' }}>{preset.description}</span>
               </span>
-              <ChevronRight size={20} className="text-[#2487EA]" />
+              <ChevronRight size={20} className="text-[#60A5FA]" />
             </motion.button>
           );
         })}

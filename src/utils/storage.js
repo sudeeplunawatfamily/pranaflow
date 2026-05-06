@@ -3,7 +3,10 @@ export const STORAGE_KEYS = {
   sessions: 'pranaflow_sessions',
   savedRhythm: 'pranaflow_saved_rhythm',
   memory: 'pranaflow_memory',
+  theme: 'pranaflow_theme',
 };
+
+export const defaultTheme = 'night';
 
 export const defaultSettings = {
   inhaleSeconds: 4,

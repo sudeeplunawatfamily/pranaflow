@@ -67,6 +67,11 @@
 - [x] B26: Refactor phase voice guidance to direct-start playback path (no end-event dependency).
 - [x] B27: Fix strict-mode session-active flag regression that disabled phase voice callbacks.
 - [x] B28: Restore phase voice gating so each phase timer starts after its voice prompt finishes.
+- [x] B29: Replace header help action with compact Day/Night icon toggle in the top-right corner.
+- [x] B30: Add the same compact Day/Night icon toggle to the Home screen top-right corner.
+- [x] B31: Remove dark-mode hardcoded surfaces from session phase timer/progress pills in Day theme.
+- [x] B32: Remove dark-mode hardcoded surfaces/shadows from Completion screen in Day theme.
+- [x] B33: Differentiate halo effects between Day and Night themes across shared character backdrops.
 
 Notes:
 - B01 complete: Session completion now triggers from explicit final-round completion state in the breathing engine instead of depending on elapsed-time threshold matching.
@@ -97,6 +102,11 @@ Notes:
 - B26 complete: Updated `useAudioGuide.playPhase()` to a direct playback path that returns on successful start instead of waiting on `ended`, and aligned session phase-start logic with immediate guidance playback plus one retry.
 - B27 complete: Updated `BreathingSession` mount/unmount effect to set `sessionFlowActiveRef.current = true` on setup (not cleanup only), preventing strict-mode remount behavior from leaving the flag stuck false and silently bypassing phase voice playback.
 - B28 complete: Reverted `useAudioGuide.playPhase()` to end-aware voice playback (`playVoice`) so `useBreathingEngine` waits for phase prompt completion before beginning per-second counts/ticks.
+- B29 complete: Moved Day/Night control to the top-right header slot (replacing Help icon) and removed the older larger Home-screen toggle pill.
+- B30 complete: Added a matching compact top-right Day/Night icon on Home and wired it to the shared persisted theme toggle handler.
+- B31 complete: Replaced hardcoded slate session timer/progress surfaces (`#334155` tracks and inactive pips) with day/night-aware values and softened Day-mode progress card shadow.
+- B32 complete: Replaced Completion screen hardcoded dark card/icon/mood/home-button surfaces with day/night-aware values and wired Completion to use the shared `theme` prop.
+- B33 complete: Added day/night halo tokens in AppShell, switched CharacterBackdrop to use halo variables, and made setup character halo gradient explicitly theme-aware.
 
 ## UI Enhancement Tasks
 
@@ -111,6 +121,8 @@ Notes:
 - [x] U09: Rebalance Custom Setup vertical distribution to avoid top cramming and lower empty space.
 - [x] U10: Center-distribute Custom Setup content area on normal heights while preserving fit on shorter screens.
 - [x] U11: Widen setup rhythm preview bar and increase spacing between setup content sections.
+- [x] U12: Apply Night Calm visual theme overhaul across app surfaces, accents, and controls.
+- [x] U13: Add persisted Day/Night theme toggle from Home screen.
 
 ## Visual Polish — Reference Matching (done by Claude Code)
 
@@ -269,6 +281,8 @@ Notes:
 - U09 complete: Removed forced bottom push on setup CTA, relaxed row spacing, and adjusted short-height hide threshold to <=680px so screen content is more evenly distributed vertically.
 - U10 complete: Wrapped setup content in a `flex-1` zone with `justify-center` on normal heights and `justify-start` on <=740px heights; adjusted setup character hide threshold to <=620px so medium/tall screens use vertical space more evenly.
 - U11 complete: Expanded rhythm preview bar to full-width centered row and increased vertical spacing between subtitle, preview bar, slider cards, and settings section.
+- U12 complete: Reskinned the app to a dark Night Calm palette (#0F172A→#1E293B) while preserving structure/layout; updated shell gradients, cards, text colors, button variants, sliders, phase accents (inhale #60A5FA, hold #A78BFA, exhale #22D3EE), character halo/ambient particles, and luminous progress styling.
+- U13 complete: Added a Home-screen theme toggle (Day/Night), persisted the selection in localStorage (`pranaflow_theme`), and wired AppShell/shared controls (Header/PrimaryButton) to react to the selected theme while keeping existing layout/component structure unchanged.
 
 Notes:
 - T01 complete: Found `public/assests` (typo) and `public/references` instead of planned `public/assets` and `public/reference`.

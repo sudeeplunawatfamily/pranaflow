@@ -5,7 +5,17 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+  --night-bg-top: #0f172a;
+  --night-bg-bottom: #1e293b;
+  --night-surface: #1e293b;
+  --night-surface-2: #243347;
+  --night-border: rgba(148, 163, 184, 0.22);
+  --night-text: #e2e8f0;
+  --night-text-muted: #94a3b8;
+  --night-primary: #60a5fa;
+  --night-hold: #a78bfa;
+  --night-exhale: #22d3ee;
 }
 
 * {
@@ -22,7 +32,8 @@ body,
 body {
   font-family: 'Nunito Sans', 'Nunito', 'Inter', sans-serif;
   overflow-x: hidden;
-  background: #f7fbff;
+  background: linear-gradient(180deg, var(--night-bg-top) 0%, var(--night-bg-bottom) 100%);
+  color: var(--night-text);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -37,17 +48,17 @@ input[type='range']::-webkit-slider-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--range-color, #2487ea);
-  border: 2.5px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  background: var(--range-color, #60a5fa);
+  border: 2.5px solid var(--range-thumb-border, #0f172a);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--range-color, #60a5fa) 22%, transparent), 0 0 12px var(--range-thumb-glow, color-mix(in srgb, var(--range-color, #60a5fa) 55%, transparent));
   cursor: pointer;
 }
 input[type='range']::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--range-color, #2487ea);
-  border: 2.5px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  background: var(--range-color, #60a5fa);
+  border: 2.5px solid var(--range-thumb-border, #0f172a);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--range-color, #60a5fa) 22%, transparent), 0 0 12px var(--range-thumb-glow, color-mix(in srgb, var(--range-color, #60a5fa) 55%, transparent));
   cursor: pointer;
 }

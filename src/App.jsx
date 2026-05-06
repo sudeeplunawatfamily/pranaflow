@@ -12,6 +12,7 @@ import {
   defaultMemory,
   defaultSavedRhythm,
   defaultSettings,
+  defaultTheme,
   normalizeSettings,
   STORAGE_KEYS,
 } from './utils/storage';
@@ -52,6 +53,7 @@ export default function App() {
   const [sessions, setSessions] = useLocalStorage(STORAGE_KEYS.sessions, []);
   const [savedRhythm, setSavedRhythm] = useLocalStorage(STORAGE_KEYS.savedRhythm, defaultSavedRhythm);
   const [memory, setMemory] = useLocalStorage(STORAGE_KEYS.memory, defaultMemory);
+  const [theme, setTheme] = useLocalStorage(STORAGE_KEYS.theme, defaultTheme);
   const [sessionResult, setSessionResult] = useState({ durationSeconds: 0, moodAfter: undefined });
   const [sessionPhaseColor, setSessionPhaseColor] = useState(null);
 
@@ -74,6 +76,7 @@ export default function App() {
   const goSetup = () => setCurrentScreen('setup');
   const goPresets = () => setCurrentScreen('presets');
   const goHome = () => setCurrentScreen('home');
+  const toggleTheme = () => setTheme((prev) => (prev === 'night' ? 'day' : 'night'));
 
   const buildRhythm = (source) => ({
     inhaleSeconds: source.inhaleSeconds,
@@ -103,13 +106,15 @@ export default function App() {
   };
 
   return (
-    <AppShell phaseColor={sessionPhaseColor}>
+    <AppShell phaseColor={sessionPhaseColor} theme={theme}>
       {currentScreen === 'home' ? (
         <HomeScreen
           onStartCustom={goSetup}
           onExplorePresets={goPresets}
           memory={memory}
           sessions={sessions}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
       ) : null}
 
@@ -117,6 +122,8 @@ export default function App() {
         <BreathingSetup
           settings={settings}
           setSettings={setAndPersistSettings}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           onBack={goHome}
           onSaveRhythm={() => saveRhythm(settings)}
           onBeginSession={() => {
@@ -131,6 +138,8 @@ export default function App() {
         <PresetsScreen
           presets={presets}
           savedRhythm={savedRhythm}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           onBack={goHome}
           onCreateCustom={goSetup}
           onSelectPreset={(preset) => {
@@ -149,6 +158,8 @@ export default function App() {
         <BreathingSession
           settings={settings}
           onPhaseChange={setSessionPhaseColor}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           onEnd={() => {
             setCurrentScreen('setup');
           }}
@@ -173,6 +184,7 @@ export default function App() {
       {currentScreen === 'complete' ? (
         <CompletionScreen
           settings={settings}
+          theme={theme}
           durationSeconds={sessionResult.durationSeconds}
           onMoodChange={(moodAfter) => {
             setSessionResult((prev) => ({ ...prev, moodAfter }));
