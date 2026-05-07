@@ -104,11 +104,24 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
           <div>
             <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Rhythm</p>
             <p className="text-[17px] font-extrabold">
-              <span className="text-[#60A5FA]">{settings.inhaleSeconds}s</span>
-              <span style={{ color: 'var(--theme-text-secondary)' }}> · </span>
-              <span className="text-[#A78BFA]">{settings.holdSeconds}s</span>
-              <span style={{ color: 'var(--theme-text-secondary)' }}> · </span>
-              <span className="text-[#22D3EE]">{settings.exhaleSeconds}s</span>
+              {settings.boxBreathing ? (
+                <>
+                  <span style={{ color: 'var(--theme-text-secondary)' }}>Box.</span>
+                  <span className="text-[#60A5FA]">{settings.inhaleSeconds}s</span>
+                  <span style={{ color: 'var(--theme-text-secondary)' }}>.</span>
+                  <span className="text-[#A78BFA]">{settings.holdSeconds}s</span>
+                  <span style={{ color: 'var(--theme-text-secondary)' }}>.</span>
+                  <span className="text-[#22D3EE]">{settings.exhaleSeconds}s</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-[#60A5FA]">{settings.inhaleSeconds}s</span>
+                  <span style={{ color: 'var(--theme-text-secondary)' }}> · </span>
+                  <span className="text-[#A78BFA]">{settings.holdSeconds}s</span>
+                  <span style={{ color: 'var(--theme-text-secondary)' }}> · </span>
+                  <span className="text-[#22D3EE]">{settings.exhaleSeconds}s</span>
+                </>
+              )}
               <span className="ml-1 text-[12px] font-semibold" style={{ color: 'var(--theme-text-secondary)' }}>· {settings.rounds} rounds</span>
             </p>
           </div>
@@ -158,7 +171,9 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
         <PrimaryButton icon={RefreshCcw} onClick={onRepeat} className="h-[60px]">
           <span className="flex flex-col items-start leading-tight">
             <span>Breathe again</span>
-            <span className="text-[11px] font-semibold opacity-75">{settings.inhaleSeconds}s · {settings.holdSeconds}s · {settings.exhaleSeconds}s · {settings.rounds} rounds</span>
+            <span className="text-[11px] font-semibold opacity-75">
+              {settings.boxBreathing ? `Box • ${settings.inhaleSeconds}s • ${settings.holdSeconds}s • ${settings.exhaleSeconds}s` : `${settings.inhaleSeconds}s • ${settings.holdSeconds}s • ${settings.exhaleSeconds}s`} • {settings.rounds} rounds
+            </span>
           </span>
         </PrimaryButton>
         <PrimaryButton icon={RotateCcw} variant="secondary" onClick={onChangeRhythm} className="h-[46px]">

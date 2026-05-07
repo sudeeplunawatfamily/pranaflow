@@ -98,6 +98,20 @@ Notes:
 - B22 complete: Added an independent intro audio channel in `useAudioGuide`, made intro flow independent of voice/sound toggles, and changed intro Skip to stop only intro audio while phase guidance remains controlled by Voice Guidance toggle and ambient/tick by Sound toggle.
 - B23 complete: Added a muted audio prime on Begin Session (same user gesture) to unlock browser audio playback for intro and phase voice prompts on stricter autoplay-policy environments; also fixed `useAudioGuide` channel callback dependencies to avoid stale closure issues.
 - B24 complete: Wrapped intro and phase voice awaits with timeout guards plus one retry so countdown and breathing progression continue even if an audio `onended` signal never arrives; this fixes cases where intro appears finished but countdown does not auto-advance.
+
+## Feature Implementation Tasks
+
+- [x] F01: Implement Box Breathing MVP on Custom Breathing Setup screen.
+  - Added `boxBreathing: false` state to defaultSettings in storage.js
+  - Updated `normalizeSettings()` to handle boxBreathing boolean
+  - Updated `useBreathingEngine` to conditionally add second 4s hold phase after exhale
+  - Modified phase cycle generation in engine start() to include: `phases.push({ phase: 'hold', duration: 4 })` when boxBreathing is true
+  - Updated totalDurationSeconds calculation to include extra 4 seconds per round when boxBreathing is enabled: `rounds * (cycleTime + extraBoxHold)`
+  - Added Box Breathing toggle in BreathingSetup settings card between Rounds and Voice Guidance (uses Repeat2 icon)
+  - Updated pattern preview bar to show the 4-second hold segment when boxBreathing is ON
+  - Second hold phase reuses existing hold phase key ('hold') and visual/audio behavior
+  - Completion screen correctly displays total time including the extra 4 seconds per round
+  - All existing functionality remains unchanged when boxBreathing is OFF (default)
 - B25 complete: Removed intro replay-on-timeout behavior and stabilized transition cleanup/dependencies in `BreathingSession`, preventing intro infinite-loop behavior and restoring automatic intro -> countdown progression.
 - B26 complete: Updated `useAudioGuide.playPhase()` to a direct playback path that returns on successful start instead of waiting on `ended`, and aligned session phase-start logic with immediate guidance playback plus one retry.
 - B27 complete: Updated `BreathingSession` mount/unmount effect to set `sessionFlowActiveRef.current = true` on setup (not cleanup only), preventing strict-mode remount behavior from leaving the flag stuck false and silently bypassing phase voice playback.

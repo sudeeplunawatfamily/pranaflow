@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Minus, Music, Pause, Plus, Play, RefreshCcw, Volume2, Waves, Wind } from 'lucide-react';
+import { Minus, Music, Pause, Plus, Play, RefreshCcw, Volume2, Waves, Wind, Repeat2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { formatTime } from '../utils/formatTime';
 import Header from './Header';
@@ -15,7 +15,8 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
   const isNight = theme === 'night';
   const update = (key, value) => setSettings((prev) => ({ ...prev, [key]: value }));
   const rhythmTotal = settings.inhaleSeconds + settings.holdSeconds + settings.exhaleSeconds;
-  const estimatedSeconds = settings.rounds * rhythmTotal;
+  const cycleExtra = settings.boxBreathing ? 4 : 0;
+  const estimatedSeconds = settings.rounds * (rhythmTotal + cycleExtra);
 
   const rhythmMeaning = useMemo(() => {
     if (settings.exhaleSeconds > settings.inhaleSeconds) return 'Longer exhales to calm your body';
@@ -133,11 +134,12 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
               { key: 'inhale', seconds: settings.inhaleSeconds, color: '#60A5FA' },
               { key: 'hold', seconds: settings.holdSeconds, color: '#A78BFA' },
               { key: 'exhale', seconds: settings.exhaleSeconds, color: '#22D3EE' },
+              ...(settings.boxBreathing ? [{ key: 'hold-box', seconds: 4, color: '#A78BFA' }] : []),
             ].map(({ key, seconds, color }) => (
               <div
                 key={key}
                 className="flex items-center justify-center overflow-hidden text-[9px] font-extrabold text-white transition-all duration-300"
-                style={{ width: `${(seconds / rhythmTotal) * 100}%`, backgroundColor: color }}
+                style={{ width: `${(seconds / (rhythmTotal + cycleExtra)) * 100}%`, backgroundColor: color }}
               >
                 {seconds}s
               </div>
@@ -148,8 +150,9 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
               { key: 'inhale', label: 'In', Icon: Wind, seconds: settings.inhaleSeconds, color: '#60A5FA' },
               { key: 'hold', label: 'Hold', Icon: Pause, seconds: settings.holdSeconds, color: '#A78BFA' },
               { key: 'exhale', label: 'Out', Icon: Waves, seconds: settings.exhaleSeconds, color: '#22D3EE' },
+              ...(settings.boxBreathing ? [{ key: 'hold-box', label: 'Hold', Icon: Pause, seconds: 4, color: '#A78BFA' }] : []),
             ].map(({ key, label, Icon, seconds, color }) => (
-              <div key={key} className="flex items-center justify-center gap-1 overflow-hidden" style={{ width: `${(seconds / rhythmTotal) * 100}%` }}>
+              <div key={key} className="flex items-center justify-center gap-1 overflow-hidden" style={{ width: `${(seconds / (rhythmTotal + cycleExtra)) * 100}%` }}>
                 <Icon size={9} color={color} />
                 <span className="text-[9px] font-bold" style={{ color }}>{label}</span>
               </div>
@@ -256,6 +259,29 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
                 <Plus size={14} />
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between border-b py-2.5" style={{ borderColor: 'var(--theme-surface-border)' }}>
+            <div className="flex items-center gap-2">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full" style={{ backgroundColor: setupUi.iconChipBg, color: setupUi.iconChipPrimary }}>
+                <Repeat2 size={12} />
+              </span>
+              <div>
+                <p className="text-[15px] font-bold leading-tight" style={{ color: 'var(--theme-text-primary)' }}>Box Breathing</p>
+                <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Add 4s hold after exhale</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={settings.boxBreathing}
+              className={`h-7 w-12 rounded-full p-1 transition ${settings.boxBreathing ? 'bg-[#60A5FA] shadow-[0_0_14px_rgba(96,165,250,0.5)]' : ''}`}
+              style={settings.boxBreathing ? undefined : { backgroundColor: setupUi.toggleOff }}
+              onClick={() => update('boxBreathing', !settings.boxBreathing)}
+              aria-label="Toggle box breathing"
+            >
+              <span className={`block h-5 w-5 rounded-full transition ${settings.boxBreathing ? 'translate-x-5' : ''}`} style={{ backgroundColor: setupUi.toggleThumb }} />
+            </button>
           </div>
 
           <div className="flex items-center justify-between border-b py-2.5" style={{ borderColor: 'var(--theme-surface-border)' }}>

@@ -100,10 +100,13 @@ export default function App() {
   };
 
   const saveRhythm = (source, name = 'Your Rhythm') => {
+    const pattern = source.boxBreathing
+      ? `Box • ${source.inhaleSeconds}s • ${source.holdSeconds}s • ${source.exhaleSeconds}s`
+      : `${source.inhaleSeconds}-${source.holdSeconds}-${source.exhaleSeconds}`;
     setSavedRhythm({
       id: 'your-rhythm',
       name,
-      pattern: `${source.inhaleSeconds}-${source.holdSeconds}-${source.exhaleSeconds}`,
+      pattern,
       inhaleSeconds: source.inhaleSeconds,
       holdSeconds: source.holdSeconds,
       exhaleSeconds: source.exhaleSeconds,

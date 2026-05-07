@@ -15,6 +15,7 @@ export const defaultSettings = {
   rounds: 5,
   voiceEnabled: true,
   soundEnabled: true,
+  boxBreathing: false,
 };
 
 export const defaultSavedRhythm = null;
@@ -36,6 +37,7 @@ export function normalizeSettings(candidate) {
     rounds: clamp(Number(candidate.rounds) || defaultSettings.rounds, 1, 20),
     voiceEnabled: normalizeBoolean(candidate.voiceEnabled, defaultSettings.voiceEnabled),
     soundEnabled: normalizeBoolean(candidate.soundEnabled, defaultSettings.soundEnabled),
+    boxBreathing: normalizeBoolean(candidate.boxBreathing, defaultSettings.boxBreathing),
   };
 }
 

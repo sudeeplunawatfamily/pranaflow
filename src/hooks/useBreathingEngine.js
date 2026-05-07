@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { phaseOrder } from '../utils/phaseConfig';
 
 export default function useBreathingEngine(settings, callbacks = {}) {
-  const { inhaleSeconds, holdSeconds, exhaleSeconds, rounds } = settings;
+  const { inhaleSeconds, holdSeconds, exhaleSeconds, rounds, boxBreathing } = settings;
   const callbacksRef = useRef(callbacks);
   const isRunningRef = useRef(false);
   const isPausedRef = useRef(false);
@@ -17,8 +17,12 @@ export default function useBreathingEngine(settings, callbacks = {}) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const totalDurationSeconds = useMemo(
-    () => rounds * (inhaleSeconds + holdSeconds + exhaleSeconds),
-    [inhaleSeconds, holdSeconds, exhaleSeconds, rounds]
+    () => {
+      const cycleTime = inhaleSeconds + holdSeconds + exhaleSeconds;
+      const extraBoxHold = boxBreathing ? 4 : 0;
+      return rounds * (cycleTime + extraBoxHold);
+    },
+    [inhaleSeconds, holdSeconds, exhaleSeconds, rounds, boxBreathing]
   );
 
   const getPhaseDuration = useCallback(
@@ -128,7 +132,19 @@ export default function useBreathingEngine(settings, callbacks = {}) {
         setCurrentRound(round);
         callbacksRef.current.onRoundChange?.(round);
 
-        for (const phase of phaseOrder) {
+        // Build phase cycle for this round
+        const phases = [
+          { phase: 'inhale', duration: inhaleSeconds },
+          { phase: 'hold', duration: holdSeconds },
+          { phase: 'exhale', duration: exhaleSeconds },
+        ];
+
+        // Add second hold if box breathing is enabled
+        if (boxBreathing) {
+          phases.push({ phase: 'hold', duration: 4 });
+        }
+
+        for (const { phase, duration } of phases) {
           setCurrentPhase(phase);
           setCurrentCount(1);
           callbacksRef.current.onPhaseChange?.(phase);
@@ -140,8 +156,6 @@ export default function useBreathingEngine(settings, callbacks = {}) {
 
           await waitWhilePaused(token);
           if (!isRunningRef.current || runTokenRef.current !== token) return;
-
-          const duration = getPhaseDuration(phase);
 
           for (let count = 1; count <= duration; count += 1) {
             setCurrentCount(count);
@@ -167,7 +181,7 @@ export default function useBreathingEngine(settings, callbacks = {}) {
         rounds,
       });
     })();
-  }, [getPhaseDuration, rounds, totalDurationSeconds, waitOneSecond, waitWhilePaused]);
+  }, [getPhaseDuration, rounds, totalDurationSeconds, waitOneSecond, waitWhilePaused, inhaleSeconds, holdSeconds, exhaleSeconds, boxBreathing]);
 
   useEffect(() => {
     callbacksRef.current = callbacks;
