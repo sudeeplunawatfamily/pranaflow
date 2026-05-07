@@ -35,27 +35,32 @@ export default function BreathingMethodSelector({ isBoxBreathing, onToggle, them
       </motion.button>
 
       {/* Box Breathing Button */}
-      <motion.button
-        type="button"
-        onClick={() => onToggle(true)}
-        whileActive={{ scale: 0.97 }}
-        className={`flex-1 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all border ${
-          isBoxBreathing
-            ? 'border-[#A78BFA] shadow-[0_0_12px_rgba(167,139,250,0.3)]'
-            : 'border-[var(--theme-surface-border)]'
-        }`}
-        style={{
-          backgroundColor: isBoxBreathing
-            ? isNight
-              ? 'rgba(167,139,250,0.15)'
-              : 'rgba(135,85,232,0.08)'
-            : 'var(--theme-surface)',
-          color: isBoxBreathing ? '#A78BFA' : 'var(--theme-text-secondary)',
-        }}
-      >
-        <Repeat2 size={16} strokeWidth={2} />
-        <span>Box</span>
-      </motion.button>
+      <div className="flex-1 relative">
+        <motion.button
+          type="button"
+          onClick={() => onToggle(true)}
+          whileActive={{ scale: 0.97 }}
+          className={`w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all border ${
+            isBoxBreathing
+              ? 'border-[#A78BFA] shadow-[0_0_12px_rgba(167,139,250,0.3)]'
+              : 'border-[var(--theme-surface-border)]'
+          }`}
+          style={{
+            backgroundColor: isBoxBreathing
+              ? isNight
+                ? 'rgba(167,139,250,0.15)'
+                : 'rgba(135,85,232,0.08)'
+              : 'var(--theme-surface)',
+            color: isBoxBreathing ? '#A78BFA' : 'var(--theme-text-secondary)',
+          }}
+        >
+          <Repeat2 size={16} strokeWidth={2} />
+          <span>Box</span>
+        </motion.button>
+        <span className="absolute -top-2 -right-2 bg-[#F74D61] text-white text-xs font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
+          New!
+        </span>
+      </div>
     </motion.div>
   );
 }
