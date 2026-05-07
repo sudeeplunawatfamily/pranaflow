@@ -34,7 +34,7 @@ export function normalizeSettings(candidate) {
     inhaleSeconds: clamp(Number(candidate.inhaleSeconds) || defaultSettings.inhaleSeconds, 1, 10),
     holdSeconds: clamp(Number(candidate.holdSeconds) || defaultSettings.holdSeconds, 1, 10),
     exhaleSeconds: clamp(Number(candidate.exhaleSeconds) || defaultSettings.exhaleSeconds, 1, 10),
-    rounds: clamp(Number(candidate.rounds) || defaultSettings.rounds, 1, 20),
+    rounds: clamp(Number(candidate.rounds) || defaultSettings.rounds, 1, 50),
     voiceEnabled: normalizeBoolean(candidate.voiceEnabled, defaultSettings.voiceEnabled),
     soundEnabled: normalizeBoolean(candidate.soundEnabled, defaultSettings.soundEnabled),
     boxBreathing: normalizeBoolean(candidate.boxBreathing, defaultSettings.boxBreathing),

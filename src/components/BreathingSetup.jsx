@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion';
-import { Minus, Music, Pause, Plus, Play, RefreshCcw, Volume2, Waves, Wind, Repeat2 } from 'lucide-react';
+import { Minus, Music, Pause, Plus, Play, RefreshCcw, Volume2, Waves, Wind, Repeat2, Zap } from 'lucide-react';
 import { useMemo } from 'react';
 import { formatTime } from '../utils/formatTime';
 import Header from './Header';
 import PrimaryButton from './PrimaryButton';
+import TimingStepperCard from './TimingStepperCard';
+import BreathingMethodSelector from './BreathingMethodSelector';
 
 const phaseCards = [
-  { key: 'inhaleSeconds', label: 'Breathe In', color: '#2487EA', Icon: Wind, ariaLabel: 'Breathe in seconds' },
-  { key: 'holdSeconds', label: 'Hold', color: '#8755E8', Icon: Pause, ariaLabel: 'Hold seconds' },
-  { key: 'exhaleSeconds', label: 'Breathe Out', color: '#20B8C4', Icon: Waves, ariaLabel: 'Breathe out seconds' },
+  { key: 'inhaleSeconds', label: 'Breathe In', color: '#60A5FA', Icon: Wind, ariaLabel: 'Breathe in seconds' },
+  { key: 'holdSeconds', label: 'Hold', color: '#A78BFA', Icon: Pause, ariaLabel: 'Hold seconds' },
+  { key: 'exhaleSeconds', label: 'Breathe Out', color: '#22D3EE', Icon: Waves, ariaLabel: 'Breathe out seconds' },
 ];
 
 export default function BreathingSetup({ settings, setSettings, onBack, onBeginSession, onSaveRhythm, theme = 'night', onToggleTheme }) {
@@ -18,331 +20,424 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
   const cycleExtra = settings.boxBreathing ? 4 : 0;
   const estimatedSeconds = settings.rounds * (rhythmTotal + cycleExtra);
 
-  const rhythmMeaning = useMemo(() => {
-    if (settings.exhaleSeconds > settings.inhaleSeconds) return 'Longer exhales to calm your body';
-    if (settings.inhaleSeconds > settings.exhaleSeconds) return 'Longer inhales to gently energize your mind';
-    return 'Balanced breathing for relaxation';
-  }, [settings.exhaleSeconds, settings.inhaleSeconds]);
-
-  const setupUi = useMemo(() => {
-    if (isNight) {
-      return {
-        iconChipBg: '#334155',
-        iconChipPrimary: '#60A5FA',
-        iconChipSound: '#22D3EE',
-        sliderTrack: '#334155',
-        toggleOff: '#334155',
-        toggleThumb: '#E2E8F0',
-        pillShadow: '0 8px 18px rgba(15,23,42,0.45)',
-        rhythmCardShadow: '0 10px 24px rgba(15,23,42,0.2)',
-        phaseCardShadow: '0 8px 20px rgba(15,23,42,0.18)',
-        valuePillShadow: '0 6px 16px rgba(15,23,42,0.5)',
-        settingsCardShadow: '0 12px 30px rgba(15,23,42,0.22)',
-        setupHalo: 'radial-gradient(circle, rgba(226,232,240,0.20) 0%, rgba(96,165,250,0.18) 30%, rgba(167,139,250,0.10) 55%, rgba(34,211,238,0.08) 72%, transparent 100%)',
-      };
+  // Helper: increment rounds by 5s
+  const incrementRounds = () => {
+    const { rounds } = settings;
+    if (rounds === 1) {
+      update('rounds', 5);
+    } else if (rounds < 5) {
+      update('rounds', 5);
+    } else if (rounds < 10) {
+      update('rounds', 10);
+    } else if (rounds < 15) {
+      update('rounds', 15);
+    } else if (rounds < 20) {
+      update('rounds', 20);
+    } else if (rounds < 25) {
+      update('rounds', 25);
+    } else if (rounds < 30) {
+      update('rounds', 30);
+    } else if (rounds < 35) {
+      update('rounds', 35);
+    } else if (rounds < 40) {
+      update('rounds', 40);
+    } else if (rounds < 45) {
+      update('rounds', 45);
+    } else {
+      update('rounds', 50);
     }
+  };
 
-    return {
-      iconChipBg: '#EAF6FF',
-      iconChipPrimary: '#2487EA',
-      iconChipSound: '#2487EA',
-      sliderTrack: '#DDEEFE',
-      toggleOff: '#D6EAFF',
-      toggleThumb: '#FFFFFF',
-      pillShadow: '0 8px 18px rgba(36,135,234,0.12)',
-      rhythmCardShadow: '0 10px 24px rgba(36,135,234,0.14)',
-      phaseCardShadow: '0 8px 20px rgba(36,135,234,0.12)',
-      valuePillShadow: '0 6px 16px rgba(36,135,234,0.16)',
-      settingsCardShadow: '0 12px 30px rgba(36,135,234,0.14)',
-      setupHalo: 'radial-gradient(circle, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.72) 30%, rgba(205,235,255,0.48) 56%, rgba(140,202,242,0.16) 76%, transparent 100%)',
-    };
+  // Helper: decrement rounds by 5s
+  const decrementRounds = () => {
+    const { rounds } = settings;
+    if (rounds > 45) {
+      update('rounds', 45);
+    } else if (rounds > 40) {
+      update('rounds', 40);
+    } else if (rounds > 35) {
+      update('rounds', 35);
+    } else if (rounds > 30) {
+      update('rounds', 30);
+    } else if (rounds > 25) {
+      update('rounds', 25);
+    } else if (rounds > 20) {
+      update('rounds', 20);
+    } else if (rounds > 15) {
+      update('rounds', 15);
+    } else if (rounds > 10) {
+      update('rounds', 10);
+    } else if (rounds > 5) {
+      update('rounds', 5);
+    } else {
+      update('rounds', 1);
+    }
+  };
+
+  const setupHalo = useMemo(() => {
+    if (isNight) {
+      return 'radial-gradient(circle, rgba(226,232,240,0.20) 0%, rgba(96,165,250,0.18) 30%, rgba(167,139,250,0.10) 55%, rgba(34,211,238,0.08) 72%, transparent 100%)';
+    }
+    return 'radial-gradient(circle, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.72) 30%, rgba(205,235,255,0.48) 56%, rgba(140,202,242,0.16) 76%, transparent 100%)';
   }, [isNight]);
 
-  const meaningPill = useMemo(() => {
-    const light = !isNight;
+  // Pattern indicator: determine quality based on rhythm
+  const patternIndicator = useMemo(() => {
+    const exhaleBonus = settings.exhaleSeconds - settings.inhaleSeconds;
+    const inhaleBonus = settings.inhaleSeconds - settings.exhaleSeconds;
 
-    if (settings.exhaleSeconds > settings.inhaleSeconds) {
-      return {
-        Icon: Waves,
-        textColor: light ? '#0B5E72' : '#BDEFF6',
-        iconColor: light ? '#20B8C4' : '#22D3EE',
-        borderColor: light ? '#BFEFF3' : 'rgba(34,211,238,0.38)',
-        bg: light
-          ? 'linear-gradient(135deg, rgba(32,184,196,0.14) 0%, rgba(32,184,196,0.06) 55%, rgba(255,255,255,0.88) 100%)'
-          : 'linear-gradient(135deg, rgba(34,211,238,0.16) 0%, rgba(34,211,238,0.06) 50%, rgba(30,41,59,0.86) 100%)',
-      };
+    if (Math.abs(exhaleBonus) < 2) {
+      return { label: 'Balanced', icon: '⚖️', color: isNight ? '#A78BFA' : '#8755E8' };
     }
-
-    if (settings.inhaleSeconds > settings.exhaleSeconds) {
-      return {
-        Icon: Wind,
-        textColor: light ? '#184B8A' : '#D4E8FF',
-        iconColor: light ? '#2487EA' : '#60A5FA',
-        borderColor: light ? '#CFE6FB' : 'rgba(96,165,250,0.38)',
-        bg: light
-          ? 'linear-gradient(135deg, rgba(36,135,234,0.14) 0%, rgba(36,135,234,0.06) 55%, rgba(255,255,255,0.88) 100%)'
-          : 'linear-gradient(135deg, rgba(96,165,250,0.18) 0%, rgba(96,165,250,0.06) 50%, rgba(30,41,59,0.86) 100%)',
-      };
+    if (exhaleBonus > 2) {
+      return { label: 'Calm', icon: '🧘', color: isNight ? '#22D3EE' : '#20B8C4' };
     }
+    return { label: 'Energizing', icon: '⚡', color: isNight ? '#60A5FA' : '#2487EA' };
+  }, [settings.exhaleSeconds, settings.inhaleSeconds, isNight]);
 
-    return {
-      Icon: Pause,
-      textColor: light ? '#5B3B95' : '#E7DDFF',
-      iconColor: light ? '#8755E8' : '#A78BFA',
-      borderColor: light ? '#E3D8FF' : 'rgba(167,139,250,0.38)',
-      bg: light
-        ? 'linear-gradient(135deg, rgba(135,85,232,0.14) 0%, rgba(135,85,232,0.06) 55%, rgba(255,255,255,0.88) 100%)'
-        : 'linear-gradient(135deg, rgba(167,139,250,0.18) 0%, rgba(167,139,250,0.06) 50%, rgba(30,41,59,0.86) 100%)',
-    };
-  }, [isNight, settings.exhaleSeconds, settings.inhaleSeconds]);
 
-  const MeaningIcon = meaningPill.Icon;
 
   return (
     <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex min-h-[calc(100dvh-32px)] flex-col pb-1">
-      <div className="flex flex-1 flex-col justify-center gap-3 max-[740px]:justify-start">
+      <div className="flex flex-1 flex-col justify-start">
+        {/* Header */}
         <Header showBack onBack={onBack} showHelp theme={theme} onToggleTheme={onToggleTheme} />
 
-        <h2 className="font-display text-[29px] font-extrabold leading-none" style={{ color: 'var(--theme-text-primary)' }}>Set your breathing rhythm</h2>
-        <p className="mt-1 text-[15px]" style={{ color: 'var(--theme-text-secondary)' }}>Adjust the timing for each phase</p>
-        <div
-          className="flex items-center gap-2 rounded-xl border px-3 py-2.5 shadow-[0_8px_18px_rgba(15,23,42,0.45)]"
-          style={{ borderColor: meaningPill.borderColor, background: meaningPill.bg, boxShadow: setupUi.pillShadow }}
-        >
-          <span
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-full"
-            style={{ color: meaningPill.iconColor, backgroundColor: 'color-mix(in srgb, var(--theme-bg-app) 28%, transparent)' }}
-          >
-            <MeaningIcon size={14} />
-          </span>
-          <p className="text-[13px] font-semibold leading-tight" style={{ color: meaningPill.textColor }}>
-            {rhythmMeaning}
-          </p>
+        {/* Title Section */}
+        <h2 className="font-display text-[29px] font-extrabold leading-none mt-3" style={{ color: 'var(--theme-text-primary)' }}>Set your breathing rhythm</h2>
+        <p className="mt-1 text-[13px]" style={{ color: 'var(--theme-text-secondary)' }}>Adjust the timing for each phase</p>
+
+        {/* Breathing Method Selector */}
+        <div className="mt-3">
+          <BreathingMethodSelector isBoxBreathing={settings.boxBreathing} onToggle={(isBox) => update('boxBreathing', isBox)} theme={theme} />
         </div>
 
-        {/* Proportional rhythm bar — segment width reflects actual phase duration */}
+
+
+        {/* Rhythm Pill with Enhanced Styling */}
         <div
-          className="mt-1.5 w-full rounded-2xl p-2.5 border"
+          className="mt-3 w-full rounded-2xl p-3 border transition-all"
           style={{
             backgroundColor: 'var(--theme-surface)',
-            borderColor: 'var(--theme-surface-border)',
-            boxShadow: setupUi.rhythmCardShadow,
+            borderColor: isNight ? 'rgba(96,165,250,0.3)' : 'rgba(36,135,234,0.2)',
+            boxShadow: isNight
+              ? '0 0 20px rgba(96,165,250,0.15), inset 0 1px 2px rgba(96,165,250,0.1)'
+              : '0 4px 12px rgba(36,135,234,0.08)',
           }}
         >
-          <div className="flex h-5 w-full overflow-hidden rounded-full">
+          <div className="flex h-6 w-full overflow-hidden rounded-full gap-0.5">
             {[
               { key: 'inhale', seconds: settings.inhaleSeconds, color: '#60A5FA' },
               { key: 'hold', seconds: settings.holdSeconds, color: '#A78BFA' },
               { key: 'exhale', seconds: settings.exhaleSeconds, color: '#22D3EE' },
               ...(settings.boxBreathing ? [{ key: 'hold-box', seconds: 4, color: '#A78BFA' }] : []),
             ].map(({ key, seconds, color }) => (
-              <div
+              <motion.div
                 key={key}
                 className="flex items-center justify-center overflow-hidden text-[9px] font-extrabold text-white transition-all duration-300"
-                style={{ width: `${(seconds / (rhythmTotal + cycleExtra)) * 100}%`, backgroundColor: color }}
+                style={{
+                  width: `${(seconds / (rhythmTotal + cycleExtra)) * 100}%`,
+                  background: `linear-gradient(135deg, ${color}, ${color}dd)`,
+                  boxShadow: `inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.1)`,
+                }}
+                initial={{ opacity: 0.8, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
               >
                 {seconds}s
-              </div>
+              </motion.div>
             ))}
           </div>
-          <div className="mt-1.5 flex">
-            {[
-              { key: 'inhale', label: 'In', Icon: Wind, seconds: settings.inhaleSeconds, color: '#60A5FA' },
-              { key: 'hold', label: 'Hold', Icon: Pause, seconds: settings.holdSeconds, color: '#A78BFA' },
-              { key: 'exhale', label: 'Out', Icon: Waves, seconds: settings.exhaleSeconds, color: '#22D3EE' },
-              ...(settings.boxBreathing ? [{ key: 'hold-box', label: 'Hold', Icon: Pause, seconds: 4, color: '#A78BFA' }] : []),
-            ].map(({ key, label, Icon, seconds, color }) => (
-              <div key={key} className="flex items-center justify-center gap-1 overflow-hidden" style={{ width: `${(seconds / (rhythmTotal + cycleExtra)) * 100}%` }}>
-                <Icon size={9} color={color} />
-                <span className="text-[9px] font-bold" style={{ color }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="relative flex justify-center">
-          <div
-            className="absolute left-1/2 top-1/2 h-[190px] w-[190px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{ background: setupUi.setupHalo }}
-          />
-          <img src="/assets/images/Inhale_pose.png" alt="Breathing setup pose" className="relative z-10 w-[210px] object-contain" />
-        </div>
-
-        <div className="mt-0.5 grid grid-cols-3 gap-1.5">
-          {phaseCards.map(({ key, label, color, Icon, ariaLabel }) => (
-            <article
-              key={key}
-              className="rounded-[20px] border p-2"
-              style={{ borderColor: `${color}66`, backgroundColor: 'var(--theme-surface)', boxShadow: setupUi.phaseCardShadow }}
+          {/* Pattern Indicator Below Rhythm Pill */}
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>
+              {[settings.inhaleSeconds, settings.holdSeconds, settings.exhaleSeconds].join('-')}s
+            </span>
+            <motion.div
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full"
+              style={{
+                backgroundColor: `${patternIndicator.color}22`,
+                border: `1px solid ${patternIndicator.color}55`,
+              }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
             >
-              <p className="text-[11px] font-bold leading-tight" style={{ color: 'var(--theme-text-primary)' }}>{label}</p>
-              <span className="mt-1.5 grid h-7 w-7 place-items-center rounded-full" style={{ backgroundColor: `${color}22`, color }}>
-                <Icon size={13} />
+              <span>{patternIndicator.icon}</span>
+              <span className="text-[10px] font-semibold" style={{ color: patternIndicator.color }}>
+                {patternIndicator.label}
               </span>
-              <button
-                type="button"
-                aria-label={`Tap to increase ${ariaLabel}`}
-                onClick={() => update(key, settings[key] >= 10 ? 1 : settings[key] + 1)}
-                className="mt-1 flex w-full flex-col items-center rounded-xl border px-1 py-1.5 shadow-[0_6px_16px_rgba(15,23,42,0.5)] transition active:scale-[0.98]"
-                style={{ borderColor: `${color}35`, backgroundColor: `${color}10`, boxShadow: setupUi.valuePillShadow }}
-              >
-                <span className="text-[18px] font-extrabold leading-none" style={{ color }}>
-                  {settings[key]}s
-                </span>
-                <span className="mt-1 inline-flex h-4 w-4 items-center justify-center rounded-full" style={{ backgroundColor: `${color}20`, color }}>
-                  <Plus size={9} strokeWidth={2.6} />
-                </span>
-              </button>
-              <input
-                type="range"
-                min={1}
-                max={10}
-                step={1}
-                aria-label={ariaLabel}
-                value={settings[key]}
-                onChange={(e) => update(key, Number(e.target.value))}
-                className="mt-1.5 h-1.5 w-full cursor-pointer appearance-none rounded-lg"
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Character Illustration with Breathing Animation */}
+        <motion.div
+          className="mt-6 flex justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <div className="relative inline-flex items-center justify-center">
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <div
+                className="h-[190px] w-[190px] rounded-full"
+                style={{ background: setupHalo }}
+              />
+            </motion.div>
+            <img src="/assets/images/Inhale_pose.png" alt="Breathing setup pose" className="relative z-10 w-[210px] object-contain" />
+          </div>
+        </motion.div>
+
+
+
+        {/* Timing Stepper Cards with Enhanced Styling */}
+        <motion.div
+          className="mt-6 grid grid-cols-3 gap-1.5"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          {phaseCards.map(({ key, label, color, Icon, ariaLabel }, index) => (
+            <div key={key} className="relative group">
+              {/* Hover Glow Background */}
+              <div
+                className="absolute -inset-0.5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{
-                  accentColor: color,
-                  '--range-color': color,
-                  '--range-thumb-border': isNight ? '#0F172A' : '#FFFFFF',
-                  '--range-thumb-glow': isNight
-                    ? 'color-mix(in srgb, var(--range-color) 55%, transparent)'
-                    : 'color-mix(in srgb, var(--range-color) 40%, white)',
-                  backgroundColor: setupUi.sliderTrack,
+                  background: isNight
+                    ? `radial-gradient(circle, ${color}33 0%, ${color}0 70%)`
+                    : `radial-gradient(circle, ${color}22 0%, ${color}0 70%)`,
+                  zIndex: -1,
                 }}
               />
-              <div className="mt-0.5 flex justify-between text-[9px]" style={{ color: 'var(--theme-text-secondary)' }}>
-                <span>1</span>
-                <span>10</span>
-              </div>
-            </article>
+              <TimingStepperCard
+                label={label}
+                value={settings[key]}
+                onIncrease={() => update(key, Math.min(10, settings[key] + 1))}
+                onDecrease={() => update(key, Math.max(1, settings[key] - 1))}
+                icon={Icon}
+                color={color}
+                ariaLabel={ariaLabel}
+                minValue={1}
+                maxValue={10}
+              />
+
+            </div>
           ))}
-        </div>
+        </motion.div>
 
-        <section
-          className="mt-0.5 rounded-[20px] p-2.5 border"
-          style={{
-            backgroundColor: 'var(--theme-surface)',
-            borderColor: 'var(--theme-surface-border)',
-            boxShadow: setupUi.settingsCardShadow,
-          }}
+
+
+        {/* Audio Toggles & Rounds - Single row alignment */}
+        <motion.div
+          className="mt-6 flex items-end justify-center gap-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
         >
-          <div className="flex items-center justify-between border-b py-2.5" style={{ borderColor: 'var(--theme-surface-border)' }}>
-            <div className="flex items-center gap-2">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full" style={{ backgroundColor: setupUi.iconChipBg, color: setupUi.iconChipPrimary }}>
-                <RefreshCcw size={12} />
-              </span>
-              <div>
-                <p className="text-[15px] font-bold leading-tight" style={{ color: 'var(--theme-text-primary)' }}>Rounds</p>
-                <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Total breathing cycles</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
+          {/* Voice Guidance Circular Button */}
+          <motion.button
+            type="button"
+            role="switch"
+            aria-checked={settings.voiceEnabled}
+            whileActive={{ scale: 0.95 }}
+            className="flex flex-col items-center gap-1.5 transition-all group"
+            onClick={() => update('voiceEnabled', !settings.voiceEnabled)}
+            aria-label="Toggle voice guidance"
+            title="Enable voice guidance for breathing instructions"
+          >
+            <motion.div
+              className="grid h-11 w-11 place-items-center rounded-full border transition-all group-hover:scale-110"
+              style={{
+                backgroundColor: settings.voiceEnabled
+                  ? '#60A5FA'
+                  : isNight
+                  ? '#334155'
+                  : '#EAF6FF',
+                borderColor: settings.voiceEnabled
+                  ? '#60A5FA'
+                  : 'var(--theme-surface-border)',
+                boxShadow: settings.voiceEnabled
+                  ? isNight
+                    ? '0 0 12px rgba(96,165,250,0.5)'
+                    : '0 0 8px rgba(36,135,234,0.3)'
+                  : 'none',
+                color: settings.voiceEnabled
+                  ? '#FFFFFF'
+                  : isNight
+                  ? '#60A5FA'
+                  : '#2487EA',
+              }}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Volume2 size={18} strokeWidth={2} />
+            </motion.div>
+            <span className="text-[11px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Voice</span>
+          </motion.button>
+
+          {/* Ambient Sound Circular Button */}
+          <motion.button
+            type="button"
+            role="switch"
+            aria-checked={settings.soundEnabled}
+            whileActive={{ scale: 0.95 }}
+            className="flex flex-col items-center gap-1.5 transition-all group"
+            onClick={() => update('soundEnabled', !settings.soundEnabled)}
+            aria-label="Toggle ambient sound"
+            title="Enable ambient OM sound during session"
+          >
+            <motion.div
+              className="grid h-11 w-11 place-items-center rounded-full border transition-all group-hover:scale-110"
+              style={{
+                backgroundColor: settings.soundEnabled
+                  ? '#22D3EE'
+                  : isNight
+                  ? '#334155'
+                  : '#EAF6FF',
+                borderColor: settings.soundEnabled
+                  ? '#22D3EE'
+                  : 'var(--theme-surface-border)',
+                boxShadow: settings.soundEnabled
+                  ? isNight
+                    ? '0 0 12px rgba(34,211,238,0.5)'
+                    : '0 0 8px rgba(32,184,196,0.3)'
+                  : 'none',
+                color: settings.soundEnabled
+                  ? '#FFFFFF'
+                  : isNight
+                  ? '#22D3EE'
+                  : '#20B8C4',
+              }}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Music size={18} strokeWidth={2} />
+            </motion.div>
+            <span className="text-[11px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Sound</span>
+          </motion.button>
+
+          {/* Rounds Control - Matching structure */}
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <button
                 type="button"
-                aria-label="Decrease rounds"
-                className="grid h-8 w-8 place-items-center rounded-full border"
-                style={{ borderColor: 'var(--theme-surface-border)', color: 'var(--theme-brand)', backgroundColor: 'color-mix(in srgb, var(--theme-bg-app) 22%, var(--theme-surface))' }}
-                onClick={() => update('rounds', Math.max(1, settings.rounds - 1))}
+                aria-label="Decrease rounds by 5"
+                className="grid h-11 w-11 place-items-center rounded-full border transition-all hover:scale-110"
+                style={{
+                  borderColor: 'var(--theme-surface-border)',
+                  color: 'var(--theme-brand)',
+                  backgroundColor: isNight ? '#334155' : '#EAF6FF',
+                }}
+                onClick={decrementRounds}
               >
-                <Minus size={14} />
+                <Minus size={16} strokeWidth={2} />
               </button>
-              <p className="w-7 text-center text-[15px] font-extrabold" style={{ color: 'var(--theme-text-primary)' }}>{settings.rounds}</p>
               <button
                 type="button"
-                aria-label="Increase rounds"
-                className="grid h-8 w-8 place-items-center rounded-full border"
-                style={{ borderColor: 'var(--theme-surface-border)', color: 'var(--theme-brand)', backgroundColor: 'color-mix(in srgb, var(--theme-bg-app) 22%, var(--theme-surface))' }}
-                onClick={() => update('rounds', Math.min(20, settings.rounds + 1))}
+                aria-label="Reset rounds to 1"
+                className="grid h-11 w-11 place-items-center rounded-full border font-bold text-sm transition-all hover:scale-110"
+                style={{
+                  backgroundColor: 'var(--theme-surface)',
+                  borderColor: 'var(--theme-surface-border)',
+                  color: 'var(--theme-text-primary)',
+                  cursor: 'pointer',
+                }}
+                onClick={() => update('rounds', 1)}
               >
-                <Plus size={14} />
+                {settings.rounds}
+              </button>
+              <button
+                type="button"
+                aria-label="Increase rounds by 5"
+                className="grid h-11 w-11 place-items-center rounded-full border transition-all hover:scale-110"
+                style={{
+                  borderColor: 'var(--theme-brand)',
+                  color: '#FFFFFF',
+                  backgroundColor: 'var(--theme-brand)',
+                  boxShadow: isNight ? '0 0 12px rgba(36,135,234,0.4)' : '0 0 8px rgba(36,135,234,0.3)',
+                }}
+                onClick={incrementRounds}
+              >
+                <Plus size={16} strokeWidth={2} />
               </button>
             </div>
+            <span className="text-[11px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Rounds</span>
           </div>
+        </motion.div>
 
-          <div className="flex items-center justify-between border-b py-2.5" style={{ borderColor: 'var(--theme-surface-border)' }}>
-            <div className="flex items-center gap-2">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full" style={{ backgroundColor: setupUi.iconChipBg, color: setupUi.iconChipPrimary }}>
-                <Repeat2 size={12} />
-              </span>
-              <div>
-                <p className="text-[15px] font-bold leading-tight" style={{ color: 'var(--theme-text-primary)' }}>Box Breathing</p>
-                <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Add 4s hold after exhale</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={settings.boxBreathing}
-              className={`h-7 w-12 rounded-full p-1 transition ${settings.boxBreathing ? 'bg-[#60A5FA] shadow-[0_0_14px_rgba(96,165,250,0.5)]' : ''}`}
-              style={settings.boxBreathing ? undefined : { backgroundColor: setupUi.toggleOff }}
-              onClick={() => update('boxBreathing', !settings.boxBreathing)}
-              aria-label="Toggle box breathing"
-            >
-              <span className={`block h-5 w-5 rounded-full transition ${settings.boxBreathing ? 'translate-x-5' : ''}`} style={{ backgroundColor: setupUi.toggleThumb }} />
-            </button>
-          </div>
 
-          <div className="flex items-center justify-between border-b py-2.5" style={{ borderColor: 'var(--theme-surface-border)' }}>
-            <div className="flex items-center gap-2">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full" style={{ backgroundColor: setupUi.iconChipBg, color: setupUi.iconChipPrimary }}>
-                <Volume2 size={12} />
-              </span>
-              <div>
-                <p className="text-[15px] font-bold leading-tight" style={{ color: 'var(--theme-text-primary)' }}>Voice Guidance</p>
-                <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Hear gentle instructions</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={settings.voiceEnabled}
-              className={`h-7 w-12 rounded-full p-1 transition ${settings.voiceEnabled ? 'bg-[#60A5FA] shadow-[0_0_14px_rgba(96,165,250,0.5)]' : ''}`}
-              style={settings.voiceEnabled ? undefined : { backgroundColor: setupUi.toggleOff }}
-              onClick={() => update('voiceEnabled', !settings.voiceEnabled)}
-              aria-label="Toggle voice guidance"
-            >
-              <span className={`block h-5 w-5 rounded-full transition ${settings.voiceEnabled ? 'translate-x-5' : ''}`} style={{ backgroundColor: setupUi.toggleThumb }} />
-            </button>
-          </div>
 
-          <div className="flex items-center justify-between py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full" style={{ backgroundColor: setupUi.iconChipBg, color: setupUi.iconChipSound }}>
-                <Music size={12} />
-              </span>
-              <div>
-                <p className="text-[15px] font-bold leading-tight" style={{ color: 'var(--theme-text-primary)' }}>Sound</p>
-                <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Ambient sounds</p>
-              </div>
+        {/* Duration Breakdown Card */}
+        <motion.div
+          className="mt-6 rounded-xl p-3 border"
+          style={{
+            backgroundColor: isNight
+              ? 'rgba(96,165,250,0.08)'
+              : 'rgba(36,135,234,0.05)',
+            borderColor: isNight
+              ? 'rgba(96,165,250,0.2)'
+              : 'rgba(36,135,234,0.15)',
+          }}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+        >
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Per Round</p>
+              <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--theme-text-primary)' }}>
+                {formatTime(rhythmTotal + cycleExtra)}
+              </p>
             </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={settings.soundEnabled}
-              className={`h-7 w-12 rounded-full p-1 transition ${settings.soundEnabled ? 'bg-[#22D3EE] shadow-[0_0_14px_rgba(34,211,238,0.45)]' : ''}`}
-              style={settings.soundEnabled ? undefined : { backgroundColor: setupUi.toggleOff }}
-              onClick={() => update('soundEnabled', !settings.soundEnabled)}
-              aria-label="Toggle sound"
-            >
-              <span className={`block h-5 w-5 rounded-full transition ${settings.soundEnabled ? 'translate-x-5' : ''}`} style={{ backgroundColor: setupUi.toggleThumb }} />
-            </button>
+            <div style={{ borderLeft: '1px solid var(--theme-surface-border)', borderRight: '1px solid var(--theme-surface-border)' }}>
+              <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Total Breaths</p>
+              <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--theme-text-primary)' }}>
+                {settings.rounds * (settings.boxBreathing ? 4 : 3)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Session Time</p>
+              <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--theme-text-primary)' }}>
+                {formatTime(estimatedSeconds)}
+              </p>
+            </div>
           </div>
-        </section>
+        </motion.div>
+
+
       </div>
 
-      <div className="mt-2 pt-1">
-        <PrimaryButton icon={Play} onClick={onBeginSession} className="h-[51px] text-[16px]">
+      {/* CTA Buttons - Enhanced with Better Layout */}
+      <motion.div
+        className="mt-auto pt-4 space-y-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.25 }}
+      >
+        <PrimaryButton
+          icon={Play}
+          onClick={onBeginSession}
+          className="h-[56px] text-[16px] font-bold shadow-lg hover:shadow-xl transition-shadow"
+        >
           Begin Session
         </PrimaryButton>
-        <PrimaryButton icon={RefreshCcw} variant="secondary" onClick={onSaveRhythm} className="mt-2 h-[44px] text-[14px]">
-          Save Rhythm
-        </PrimaryButton>
-        <p className="mt-1.5 text-center text-[12px]" style={{ color: 'var(--theme-text-secondary)' }}>
-          ≈ {formatTime(estimatedSeconds)} total
-        </p>
-      </div>
+        <div className="flex gap-2">
+          <PrimaryButton
+            icon={RefreshCcw}
+            variant="secondary"
+            onClick={onSaveRhythm}
+            className="flex-1 h-[44px] text-[13px]"
+          >
+            Save Rhythm
+          </PrimaryButton>
+        </div>
+      </motion.div>
     </motion.section>
   );
 }

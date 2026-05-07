@@ -189,15 +189,48 @@ Home (`src/components/HomeScreen.jsx`):
 - Shows rhythm-forward resume chip and smart suggestion text using memory context.
 - Uses presets, not intent chips, as the quick-start path.
 
-Setup (`src/components/BreathingSetup.jsx`):
-- Three timing cards with sliders and tappable value increment.
-- Proportional rhythm preview bar reflecting inhale/hold/exhale proportions.
-- Dynamic meaning insight pill that changes by inhale/exhale balance.
-- Character + glow remains on setup (functional preview module was reverted).
-- Rounds stepper (1..20).
-- Voice and sound toggles.
-- Save Rhythm action.
-- Estimated total session duration.
+Setup (`src/components/BreathingSetup.jsx`) — May 2026 Redesign (Full Enhancement):
+- **Breathing Method Selector** at top: Custom vs Box Breathing toggle buttons with active states.
+- **Rhythm Pill**: Proportional bar with gradient overlay and theme-aware glow effects (stronger in dark mode).
+  - Shows 3 segments (Custom) or 4 segments (Box: +4s fixed hold after exhale).
+  - Pattern Indicator badge showing "Calm", "Balanced", or "Energizing" based on inhale/exhale balance.
+  - Animated segment transitions with smooth scaling.
+- **Visual Section Dividers**: 6 subtle horizontal dividers for improved visual hierarchy and organization.
+- **Character Illustration**: Centered with animated breathing pulse (scale 1 → 1.08 → 1 over 4 seconds).
+- **Timing Stepper Cards** (3 cards only, never 4):
+  - Vertical stepper design: top + button (phase color), middle card (icon/label/value), bottom − button (subtle tint).
+  - Enhanced with hover glow background (theme-aware radial gradient).
+  - Large touch targets (44px+ height), min/max clamping (1–10), smooth animations.
+  - Micro-animations: button scale on hover/active, value pulse on change.
+  - First card shows helpful tooltip: "Tap ± to adjust" (delayed appearance).
+- **Compact Rounds Control** with visual progress bar:
+  - 5-step increment logic (1→5→10→15→20) with decrement reversal.
+  - Shows "breathing cycles" sub-label.
+  - Progress bar fills proportionally to rounds/20 with theme-aware shadow glow.
+  - Hover scale effect on increment/decrement buttons.
+- **Audio Toggles** (larger, more visible circular buttons):
+  - Circular buttons (h-11 w-11) with icon inside.
+  - Fill with color when active (#60A5FA for Voice, #22D3EE for Sound).
+  - Show "Voice"/"Sound" labels below.
+  - Display "On"/"Off" status indicator below label.
+  - Hover scale and theme-aware glow effects.
+  - Titles for accessibility (hover tooltips).
+- **Duration Breakdown Card**:
+  - Three-column grid showing: Per Round time, Total Breaths count, Session Time.
+  - Theme-aware background and borders.
+  - Vertical dividers between columns.
+- **Session Preview/Summary Pill**:
+  - Compact confirmation showing exact rhythm pattern: "Xs In • Xs Hold • Xs Out [• 4s Hold] × Rounds".
+  - Sub-text: "Ready to start? Your rhythm is set!".
+  - Theme-aware styling with subtle background.
+- **CTAs**:
+  - Begin Session: h-56, stronger shadow, more prominent (h-11 w-11 buttons elevated).
+  - Save Rhythm: Secondary button with flex-1 layout.
+  - Smooth entrance animations with staggered delays.
+- **Theme Compatibility**: All elements use CSS variables and theme-aware colors.
+  - Dark mode: Stronger glows, deeper shadows, higher contrast.
+  - Light mode: Softer shadows, lighter accents, readable contrast.
+- **All existing behavior preserved**: breathing engine, audio system, localStorage persistence, session flow.
 
 Presets (`src/components/PresetsScreen.jsx`):
 - Preset cards with icon, color accent, pattern, and description.
@@ -310,6 +343,8 @@ Share these files first for best context fidelity:
 - `src/hooks/useBreathingEngine.js`
 - `src/hooks/useAudioGuide.js`
 - `src/components/BreathingSetup.jsx`
+- `src/components/TimingStepperCard.jsx` (new, May 2026)
+- `src/components/BreathingMethodSelector.jsx` (new, May 2026)
 - `src/components/HomeScreen.jsx`
 - `src/components/PresetsScreen.jsx`
 - `src/components/CompletionScreen.jsx`

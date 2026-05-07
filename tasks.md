@@ -31,6 +31,43 @@
 
 - [x] All currently tracked tasks completed.
 
+## UI/UX Redesign Tasks
+
+- [x] T34: Implement mobile-first redesign of Setup screen ("Set your breathing rhythm").
+  - Created `TimingStepperCard.jsx` component (vertical +/− stepper replacing sliders).
+  - Created `BreathingMethodSelector.jsx` component (Custom vs Box Breathing toggle).
+  - Refactored `BreathingSetup.jsx` with new layout structure.
+  - Moved Box Breathing control from settings panel to top method selector.
+  - Updated rounds to use 5-step increment logic (1→5→10→15→20).
+  - Simplified settings section to show only Voice Guidance and Ambient Sound (OM default preserved).
+  - Ensured full theme compatibility (dark/light modes).
+  - Verified all seven use cases (Custom, Box Breathing, editing, rounds, audio, save/load, session start).
+  - All existing breathing engine, audio, and persistence behavior preserved.
+- [x] T35: Replace pill-style audio toggles with compact circular button toggles.
+  - Converted Voice Guidance and Ambient Sound from h-7 w-12 pills to h-10 w-10 circular buttons.
+  - Buttons fill with phase colors when active (#60A5FA for Voice, #22D3EE for Sound).
+  - Show icons inside circles (Volume2 and Music).
+  - Displays label text below each button ("Voice" and "Sound").
+  - Theme-aware (respects dark/light mode color schemes).
+  - Saves significant vertical space on setup screen.
+  - Maintains all existing audio functionality and state management.
+- [x] T36: Implement all 12 UI enhancement suggestions for Setup screen.
+  - Suggestion 1: Enhanced Rhythm Pill with gradient overlay and glow effects (theme-aware shadows).
+  - Suggestion 2: Added animated pattern indicator showing "Calm", "Balanced", or "Energizing" based on rhythm.
+  - Suggestion 3: Added visual section dividers (6 divider lines) for better hierarchy.
+  - Suggestion 4: Added micro-animations to Timing Stepper Cards (hover scale, button glow).
+  - Suggestion 5: Added breathing animation pulse to character illustration (scale breathing effect).
+  - Suggestion 6: Enhanced Rounds control with progress bar visualization (fills 0-100% for rounds 1-20).
+  - Suggestion 7: Added helpful tooltip hints ("Tap ± to adjust" on first card).
+  - Suggestion 8: Improved audio toggle visibility with larger buttons (h-11 w-11), On/Off status text, hover effects.
+  - Suggestion 9: Added Duration Breakdown Card showing per-round time, total breaths, total session time.
+  - Suggestion 10: Theme-specific enhancements (stronger glow in dark mode, softer shadows in light mode).
+  - Suggestion 11: Improved CTA layout (Begin Session h-56 with stronger shadow, Save Rhythm as secondary).
+  - Suggestion 12: Added Session Preview/Summary Pill showing exact rhythm pattern and confirmation message.
+  - All enhancements are fully theme-aware and work in both dark/light modes.
+  - Build verified: No TypeScript/JSX errors.
+  - No breaking changes to other app screens or functionality.
+
 ## Run Tasks
 
 - [x] R01: Start local dev server (`npm run dev`).
