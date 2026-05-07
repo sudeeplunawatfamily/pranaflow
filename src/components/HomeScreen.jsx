@@ -87,7 +87,7 @@ export default function HomeScreen({ onStartCustom, onExplorePresets, memory, se
 
       <div className="mt-4 w-full space-y-2.5 pt-1">
         <PrimaryButton icon={Play} onClick={onStartCustom} className="h-[56px] text-[16px] shadow-[0_0_0_1px_rgba(96,165,250,0.45),0_0_28px_rgba(96,165,250,0.36)]">
-          Start Custom Breathing
+          Breathe your way
         </PrimaryButton>
         <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em]" style={{ color: 'var(--theme-text-secondary)' }}>or</p>
         <PrimaryButton icon={Sparkles} variant="secondary" onClick={onExplorePresets} className="h-[46px] text-[14px]">
