@@ -198,7 +198,7 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
 
         {/* Timing Stepper Cards with Enhanced Styling */}
         <motion.div
-          className="mt-6 grid grid-cols-3 gap-1.5"
+          className="mt-6 mb-10 grid grid-cols-3 gap-1.5"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
