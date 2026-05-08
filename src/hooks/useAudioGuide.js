@@ -165,6 +165,9 @@ export default function useAudioGuide() {
           const audio = new Audio(src);
           audio.loop = loop;
           audio.volume = volume;
+          audio.preload = 'auto';
+          audio.playsInline = true;
+          audio.setAttribute('playsinline', 'true');
           let halfwayResolved = false;
           let halfwayIntervalId = null;
           let halfwayWatchdogId = null;
@@ -256,6 +259,9 @@ export default function useAudioGuide() {
           const audio = new Audio(src);
           audio.loop = loop;
           audio.volume = volume;
+          audio.preload = 'auto';
+          audio.playsInline = true;
+          audio.setAttribute('playsinline', 'true');
           introAudioRef.current = audio;
           introResolverRef.current = resolve;
           globalIntroAudio = audio;
@@ -300,6 +306,9 @@ export default function useAudioGuide() {
       const audio = new Audio(src);
       audio.loop = loop;
       audio.volume = volume;
+      audio.preload = 'auto';
+      audio.playsInline = true;
+      audio.setAttribute('playsinline', 'true');
       const playPromise = audio.play();
 
       if (playPromise && typeof playPromise.catch === 'function') {
@@ -342,6 +351,9 @@ export default function useAudioGuide() {
       stopInstance(tickAudioRef.current);
       const tick = new Audio(src);
       tick.volume = TICK_VOLUME;
+      tick.preload = 'auto';
+      tick.playsInline = true;
+      tick.setAttribute('playsinline', 'true');
       tickAudioRef.current = tick;
       globalTickAudio = tick;
       const playPromise = tick.play();
@@ -371,6 +383,9 @@ export default function useAudioGuide() {
         const ambient = new Audio(src);
         ambient.loop = true;
         ambient.volume = AMBIENT_VOLUME;
+        ambient.preload = 'auto';
+        ambient.playsInline = true;
+        ambient.setAttribute('playsinline', 'true');
         ambientAudioRef.current = ambient;
         globalAmbientAudio = ambient;
       }

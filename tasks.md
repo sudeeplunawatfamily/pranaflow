@@ -110,6 +110,8 @@
 - [x] B32: Remove dark-mode hardcoded surfaces/shadows from Completion screen in Day theme.
 - [x] B33: Differentiate halo effects between Day and Night themes across shared character backdrops.
 - [x] B34: Start phase timer at midpoint of phase voice guidance instead of waiting for full prompt completion.
+- [x] B35: Improve iPhone/Safari phase voice reliability by ducking ambient during phase prompts and applying iOS-friendly Audio element flags.
+- [x] B36: Fix stale UI updates on Vercel by removing immutable caching from non-hashed public image/icon assets.
 
 Notes:
 - B01 complete: Session completion now triggers from explicit final-round completion state in the breathing engine instead of depending on elapsed-time threshold matching.
@@ -159,6 +161,8 @@ Notes:
 - B31 complete: Replaced hardcoded slate session timer/progress surfaces (`#334155` tracks and inactive pips) with day/night-aware values and softened Day-mode progress card shadow.
 - B32 complete: Replaced Completion screen hardcoded dark card/icon/mood/home-button surfaces with day/night-aware values and wired Completion to use the shared `theme` prop.
 - B34 complete: Updated `useAudioGuide.playPhase()` to resolve phase gating at halfway playback with a watchdog fallback, so the breathing count starts mid-prompt while keeping intro audio end-based.
+- B35 complete: Updated `BreathingSession.onBeforePhaseStart` to pause ambient before phase voice playback and restart ambient afterward; added `preload='auto'` and `playsinline` flags on app audio elements in `useAudioGuide` to reduce iOS playback inconsistencies across phase transitions.
+- B36 complete: Updated `vercel.json` cache headers to keep immutable caching only for `/assets/*.js|*.css`, while `/assets/*` images/icons now use short `must-revalidate` caching so UI asset changes appear without hard refresh.
 
 ## Audio Feature Tasks
 ## UI Enhancement Tasks
