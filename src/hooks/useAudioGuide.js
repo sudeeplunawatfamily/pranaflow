@@ -5,6 +5,7 @@ const VOICE_VOLUME = 0.92;
 const TICK_VOLUME = 0.65;
 const AMBIENT_VOLUME = 0.27;
 const HALFWAY_WATCHDOG_MS = 2500;
+const IOS_RETRY_DELAY_MS = 120;
 
 let globalIntroAudio = null;
 let globalVoiceAudio = null;
@@ -19,6 +20,13 @@ function stopInstance(audio) {
   if (!audio) return;
   audio.pause();
   audio.currentTime = 0;
+}
+
+function prepareAudioElement(audio) {
+  if (!audio) return;
+  audio.preload = 'auto';
+  audio.playsInline = true;
+  audio.setAttribute('playsinline', 'true');
 }
 
 function resolveGlobalVoice(result) {
@@ -157,20 +165,20 @@ export default function useAudioGuide() {
     } = options;
 
     if (channel === 'voice') {
-      stopVoice({ reset: true, interrupt: true });
+      // Reuse a single voice element across phases for better iOS Safari reliability.
+      stopVoice({ reset: false, interrupt: true });
       const token = voiceTokenRef.current;
 
       return new Promise((resolve) => {
         try {
-          const audio = new Audio(src);
+          const audio = voiceAudioRef.current || new Audio();
+          prepareAudioElement(audio);
           audio.loop = loop;
           audio.volume = volume;
-          audio.preload = 'auto';
-          audio.playsInline = true;
-          audio.setAttribute('playsinline', 'true');
           let halfwayResolved = false;
           let halfwayIntervalId = null;
           let halfwayWatchdogId = null;
+          let retriedPlay = false;
 
           const clearHalfwayWatchers = () => {
             if (halfwayIntervalId) {
@@ -205,32 +213,46 @@ export default function useAudioGuide() {
           globalVoiceAudio = audio;
           globalVoiceResolver = resolve;
 
+          audio.src = src;
+          audio.load();
+
           audio.onended = () => {
             if (token !== voiceTokenRef.current) return;
             clearHalfwayWatchers();
-            voiceAudioRef.current = null;
-            globalVoiceAudio = null;
             resolveActiveVoice('ended');
           };
 
           audio.onerror = () => {
             if (token !== voiceTokenRef.current) return;
             clearHalfwayWatchers();
-            voiceAudioRef.current = null;
-            globalVoiceAudio = null;
             resolveActiveVoice('error');
           };
 
-          const playPromise = audio.play();
-          if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch(() => {
-              if (token !== voiceTokenRef.current) return;
-              clearHalfwayWatchers();
-              voiceAudioRef.current = null;
-              globalVoiceAudio = null;
-              resolveActiveVoice('play-failed');
-            });
-          }
+          const startPlayback = () => {
+            if (token !== voiceTokenRef.current) return;
+
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {
+                if (token !== voiceTokenRef.current) return;
+
+                if (!retriedPlay) {
+                  retriedPlay = true;
+                  setTimeout(() => {
+                    if (token !== voiceTokenRef.current) return;
+                    audio.load();
+                    startPlayback();
+                  }, IOS_RETRY_DELAY_MS);
+                  return;
+                }
+
+                clearHalfwayWatchers();
+                resolveActiveVoice('play-failed');
+              });
+            }
+          };
+
+          startPlayback();
 
           if (waitForEnd && resolveAtHalfway) {
             halfwayIntervalId = setInterval(checkHalfway, 80);
@@ -243,8 +265,6 @@ export default function useAudioGuide() {
             resolveActiveVoice('started');
           }
         } catch {
-          voiceAudioRef.current = null;
-          globalVoiceAudio = null;
           resolveActiveVoice('runtime-error');
         }
       });
@@ -259,9 +279,7 @@ export default function useAudioGuide() {
           const audio = new Audio(src);
           audio.loop = loop;
           audio.volume = volume;
-          audio.preload = 'auto';
-          audio.playsInline = true;
-          audio.setAttribute('playsinline', 'true');
+          prepareAudioElement(audio);
           introAudioRef.current = audio;
           introResolverRef.current = resolve;
           globalIntroAudio = audio;
@@ -306,9 +324,7 @@ export default function useAudioGuide() {
       const audio = new Audio(src);
       audio.loop = loop;
       audio.volume = volume;
-      audio.preload = 'auto';
-      audio.playsInline = true;
-      audio.setAttribute('playsinline', 'true');
+      prepareAudioElement(audio);
       const playPromise = audio.play();
 
       if (playPromise && typeof playPromise.catch === 'function') {
@@ -351,9 +367,7 @@ export default function useAudioGuide() {
       stopInstance(tickAudioRef.current);
       const tick = new Audio(src);
       tick.volume = TICK_VOLUME;
-      tick.preload = 'auto';
-      tick.playsInline = true;
-      tick.setAttribute('playsinline', 'true');
+      prepareAudioElement(tick);
       tickAudioRef.current = tick;
       globalTickAudio = tick;
       const playPromise = tick.play();
@@ -383,9 +397,7 @@ export default function useAudioGuide() {
         const ambient = new Audio(src);
         ambient.loop = true;
         ambient.volume = AMBIENT_VOLUME;
-        ambient.preload = 'auto';
-        ambient.playsInline = true;
-        ambient.setAttribute('playsinline', 'true');
+        prepareAudioElement(ambient);
         ambientAudioRef.current = ambient;
         globalAmbientAudio = ambient;
       }
