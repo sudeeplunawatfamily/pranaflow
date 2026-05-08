@@ -224,11 +224,15 @@ Notes:
 ## Docker / Infrastructure Fix (done by Claude Code, 2026-05-03)
 
 - [x] I01: Fix browser caching of audio files — split nginx.conf cache rules: JS/CSS get `immutable` (1 year), images get 7-day non-immutable, audio gets 1-hour `must-revalidate` so swapped mp3s are picked up after a rebuild + cache clear.
+- [x] I02: Prevent stale app updates on mobile by disabling cache for HTML app shell documents (`index.html` and other `.html` paths) so new hashed bundles are discovered on launch.
+- [x] I03: Add equivalent Vercel cache-header rules in `vercel.json` so HTML is never cached and release updates show on phones without hard refresh.
 
 Notes:
 - S01–S05 complete: All session screen improvements applied to BreathingSession.jsx; ambient volume updated in useAudioGuide.js.
 - S06 complete: Increased centralized Howler tick volume defaults in audioManager.js; final tick remains louder than the regular tick.
 - I01 complete: docker/nginx.conf updated; requires `docker compose up --build` + "Clear site data" in browser DevTools on first deploy after change.
+- I02 complete: Updated nginx cache headers for HTML documents to `no-store/no-cache/must-revalidate` while preserving aggressive caching for hashed JS/CSS, so existing mobile users pick up new releases without manual hard refresh.
+- I03 complete: Added `vercel.json` header rules: HTML (`/`, `/index.html`, `/*.html`) set to no-store/no-cache; hashed `/assets/*` immutable cache; audio (`/assets/audio/*`, `/sounds/*`) short revalidation cache.
 
 ## Improvement Tasks (Session 2)
 
