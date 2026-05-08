@@ -113,12 +113,6 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
     onBeforePhaseStart: async (phase) => {
       if (!sessionFlowActiveRef.current) return;
 
-      // On iOS Safari, concurrent ambient+voice playback can suppress later phase prompts.
-      // Pause ambient before voice prompt, then restore it after phase guidance is queued.
-      if (settings.soundEnabled && settings.voiceEnabled) {
-        audio.pauseAmbient();
-      }
-
       if (settings.voiceEnabled) {
         let result = await audio.playPhase(phase);
 

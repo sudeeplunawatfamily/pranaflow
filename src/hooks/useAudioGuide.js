@@ -1,5 +1,15 @@
 import { useCallback, useRef } from 'react';
 import { audioAssets } from '../utils/audioAssets';
+import {
+  playVoicePhase,
+  stopVoicePhase,
+  pauseVoicePhase,
+  resumeVoicePhase,
+  startAmbientHowl,
+  pauseAmbientHowl,
+  resumeAmbientHowl,
+  stopAmbientHowl,
+} from '../utils/audioManager';
 
 const VOICE_VOLUME = 0.92;
 const TICK_VOLUME = 0.65;
@@ -52,19 +62,12 @@ export function stopGlobalAudio() {
   globalIntroToken += 1;
   resolveGlobalIntro('stopped');
 
-  if (globalVoiceAudio) {
-    globalVoiceAudio.pause();
-    globalVoiceAudio.currentTime = 0;
-  }
-  globalVoiceAudio = null;
-  globalVoiceToken += 1;
-  resolveGlobalVoice('stopped');
+  // Voice and ambient are now managed by Howler inside audioManager.
+  stopVoicePhase();
+  stopAmbientHowl();
 
   stopInstance(globalTickAudio);
   globalTickAudio = null;
-
-  stopInstance(globalAmbientAudio);
-  globalAmbientAudio = null;
 }
 
 export default function useAudioGuide() {
@@ -110,48 +113,16 @@ export default function useAudioGuide() {
   );
 
   const stopVoice = useCallback(
-    ({ reset = true, interrupt = true } = {}) => {
-      const voice = voiceAudioRef.current;
-      if (voice) {
-        voice.pause();
-        if (reset) voice.currentTime = 0;
-      }
-
-      if (reset) {
-        voiceAudioRef.current = null;
-        globalVoiceAudio = null;
-      }
-
-      if (interrupt) {
-        voiceTokenRef.current += 1;
-        globalVoiceToken = voiceTokenRef.current;
-        resolveActiveVoice('stopped');
-      }
+    ({ interrupt = true } = {}) => {
+      // Voice is managed by Howler in audioManager.
+      if (interrupt) stopVoicePhase();
     },
-    [resolveActiveVoice]
+    []
   );
 
-  const pauseVoice = useCallback(() => {
-    const voice = voiceAudioRef.current;
-    if (!voice) return;
-    voice.pause();
-  }, []);
+  const pauseVoice = useCallback(() => { pauseVoicePhase(); }, []);
 
-  const resumeVoice = useCallback(() => {
-    const voice = voiceAudioRef.current;
-    if (!voice) return;
-
-    try {
-      const playPromise = voice.play();
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(() => {
-          // Silent failure keeps the flow running.
-        });
-      }
-    } catch {
-      // Ignore voice resume errors.
-    }
-  }, []);
+  const resumeVoice = useCallback(() => { resumeVoicePhase(); }, []);
 
   const playAudio = useCallback((src, options = {}) => {
     if (!src) return Promise.resolve('missing-src');
@@ -354,9 +325,11 @@ export default function useAudioGuide() {
     [playAudio]
   );
 
+  // Phase voice goes through Howler so it shares the same AudioContext as ticks/ambient.
+  // This eliminates iOS Safari's concurrent-stream blocking across phase transitions.
   const playPhase = useCallback(
-    (phase) => playVoice(audioAssets.phases[phase], { resolveAtHalfway: true }),
-    [playVoice]
+    (phase) => playVoicePhase(audioAssets.phases[phase]),
+    []
   );
 
   const playTick = useCallback(() => {
@@ -388,56 +361,16 @@ export default function useAudioGuide() {
     globalTickAudio = null;
   }, []);
 
+  // Ambient runs through Howler (same AudioContext as voice + ticks).
   const startAmbient = useCallback(() => {
-    const src = audioAssets.ambient.background;
-    if (!src) return;
-
-    try {
-      if (!ambientAudioRef.current) {
-        const ambient = new Audio(src);
-        ambient.loop = true;
-        ambient.volume = AMBIENT_VOLUME;
-        prepareAudioElement(ambient);
-        ambientAudioRef.current = ambient;
-        globalAmbientAudio = ambient;
-      }
-
-      const playPromise = ambientAudioRef.current.play();
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(() => {
-          // Silent failure for ambient playback.
-        });
-      }
-    } catch {
-      // Ignore ambient runtime errors.
-    }
+    startAmbientHowl(audioAssets.ambient.background);
   }, []);
 
-  const pauseAmbient = useCallback(() => {
-    if (!ambientAudioRef.current) return;
-    ambientAudioRef.current.pause();
-  }, []);
+  const pauseAmbient = useCallback(() => { pauseAmbientHowl(); }, []);
 
-  const resumeAmbient = useCallback(() => {
-    if (!ambientAudioRef.current) return;
+  const resumeAmbient = useCallback(() => { resumeAmbientHowl(); }, []);
 
-    try {
-      const playPromise = ambientAudioRef.current.play();
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(() => {
-          // Silent failure for ambient resume.
-        });
-      }
-    } catch {
-      // Ignore ambient resume errors.
-    }
-  }, []);
-
-  const stopAmbient = useCallback(() => {
-    stopInstance(ambientAudioRef.current);
-    ambientAudioRef.current = null;
-    globalAmbientAudio = null;
-  }, []);
+  const stopAmbient = useCallback(() => { stopAmbientHowl(); }, []);
 
   const playComplete = useCallback(
     () => playAudio(audioAssets.ui.complete, { channel: 'voice', volume: VOICE_VOLUME, waitForEnd: false }),
@@ -450,15 +383,11 @@ export default function useAudioGuide() {
   );
 
   const stopAllAudio = useCallback(() => {
-    stopGlobalAudio();
+    stopGlobalAudio(); // stops intro HTML Audio + Howler voice + Howler ambient + tick
     introAudioRef.current = globalIntroAudio;
-    voiceAudioRef.current = globalVoiceAudio;
     tickAudioRef.current = globalTickAudio;
-    ambientAudioRef.current = globalAmbientAudio;
     introResolverRef.current = globalIntroResolver;
-    voiceResolverRef.current = globalVoiceResolver;
     introTokenRef.current = globalIntroToken;
-    voiceTokenRef.current = globalVoiceToken;
   }, []);
 
   return {

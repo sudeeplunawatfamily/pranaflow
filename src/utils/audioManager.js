@@ -87,20 +87,152 @@ export function playTick(isLastSecond = false) {
   }
 }
 
+// ─── Voice phase (Howler) ───────────────────────────────────────────────────
+// Using Howler keeps voice in the same AudioContext as ticks and ambient,
+// so iOS Safari never blocks a new voice clip because of a concurrent stream.
+
+const VOICE_VOLUME = 0.92;
+let voiceHowl = null;
+let voiceHowlToken = 0;
+
 /**
- * Stop all audio playback (both tick sounds).
+ * Play a phase voice clip through Howler.
+ * Resolves at the halfway point so the breathing timer can start mid-prompt.
+ */
+export function playVoicePhase(src) {
+  voiceHowlToken += 1;
+  const token = voiceHowlToken;
+  if (voiceHowl) {
+    try { voiceHowl.stop(); voiceHowl.unload(); } catch { /* ignore */ }
+    voiceHowl = null;
+  }
+
+  return new Promise((resolve) => {
+    try {
+      let halfwayResolved = false;
+      let intervalId = null;
+      let watchdogId = null;
+
+      const cleanup = () => {
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+        if (watchdogId) { clearTimeout(watchdogId); watchdogId = null; }
+      };
+
+      const settle = (result) => {
+        if (token !== voiceHowlToken) return;
+        cleanup();
+        resolve(result);
+      };
+
+      const howl = new Howl({
+        src: [src],
+        volume: VOICE_VOLUME,
+        html5: false,
+        preload: true,
+        onplay: () => {
+          if (token !== voiceHowlToken) return;
+          // Poll every 80ms to detect halfway point using actual audio metadata.
+          intervalId = setInterval(() => {
+            if (token !== voiceHowlToken) { cleanup(); return; }
+            if (halfwayResolved) return;
+            const dur = howl.duration();
+            const pos = typeof howl.seek() === 'number' ? howl.seek() : 0;
+            if (dur > 0 && pos >= dur / 2) {
+              halfwayResolved = true;
+              settle('halfway');
+            }
+          }, 80);
+          // Watchdog: resolve after 2.5 s if duration metadata never arrives.
+          watchdogId = setTimeout(() => {
+            if (!halfwayResolved) settle('halfway-watchdog');
+          }, 2500);
+        },
+        onend: () => {
+          if (token !== voiceHowlToken) return;
+          cleanup();
+          if (!halfwayResolved) settle('ended');
+        },
+        onloaderror: () => {
+          if (token !== voiceHowlToken) return;
+          cleanup();
+          settle('error');
+        },
+        onplayerror: () => {
+          if (token !== voiceHowlToken) return;
+          cleanup();
+          settle('play-failed');
+        },
+      });
+
+      voiceHowl = howl;
+      howl.play();
+    } catch {
+      resolve('runtime-error');
+    }
+  });
+}
+
+export function stopVoicePhase() {
+  voiceHowlToken += 1;
+  if (voiceHowl) {
+    try { voiceHowl.stop(); voiceHowl.unload(); } catch { /* ignore */ }
+    voiceHowl = null;
+  }
+}
+
+export function pauseVoicePhase() {
+  try { voiceHowl?.pause(); } catch { /* ignore */ }
+}
+
+export function resumeVoicePhase() {
+  try { if (voiceHowl && !voiceHowl.playing()) voiceHowl.play(); } catch { /* ignore */ }
+}
+
+// ─── Ambient (Howler) ────────────────────────────────────────────────────────
+// Ambient runs in the same AudioContext so it never blocks voice clips.
+
+const AMBIENT_VOLUME = 0.27;
+let ambientHowl = null;
+
+export function startAmbientHowl(src) {
+  if (ambientHowl) {
+    try { if (!ambientHowl.playing()) ambientHowl.play(); } catch { /* ignore */ }
+    return;
+  }
+  try {
+    ambientHowl = new Howl({ src: [src], loop: true, volume: AMBIENT_VOLUME, html5: false, preload: true });
+    ambientHowl.play();
+  } catch { /* ignore */ }
+}
+
+export function pauseAmbientHowl() {
+  try { ambientHowl?.pause(); } catch { /* ignore */ }
+}
+
+export function resumeAmbientHowl() {
+  try { if (ambientHowl && !ambientHowl.playing()) ambientHowl.play(); } catch { /* ignore */ }
+}
+
+export function stopAmbientHowl() {
+  try {
+    if (ambientHowl) { ambientHowl.stop(); ambientHowl.unload(); ambientHowl = null; }
+  } catch { /* ignore */ }
+}
+
+// ─── Stop all ────────────────────────────────────────────────────────────────
+
+/**
+ * Stop all audio playback (ticks, voice, ambient).
  */
 export function stopAllAudio() {
   try {
-    if (regularTick) {
-      regularTick.stop();
-    }
-    if (finalTick) {
-      finalTick.stop();
-    }
+    if (regularTick) regularTick.stop();
+    if (finalTick) finalTick.stop();
   } catch (error) {
-    console.warn('Error stopping audio:', error);
+    console.warn('Error stopping tick audio:', error);
   }
+  stopVoicePhase();
+  stopAmbientHowl();
 }
 
 /**
@@ -143,17 +275,11 @@ export function setTickVolume(volume) {
  */
 export function cleanupAudio() {
   try {
-    if (regularTick) {
-      regularTick.stop();
-      regularTick.unload();
-      regularTick = null;
-    }
-    if (finalTick) {
-      finalTick.stop();
-      finalTick.unload();
-      finalTick = null;
-    }
+    if (regularTick) { regularTick.stop(); regularTick.unload(); regularTick = null; }
+    if (finalTick) { finalTick.stop(); finalTick.unload(); finalTick = null; }
   } catch (error) {
     console.warn('Error during audio cleanup:', error);
   }
+  stopVoicePhase();
+  stopAmbientHowl();
 }
