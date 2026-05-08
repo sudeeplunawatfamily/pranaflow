@@ -109,6 +109,7 @@
 - [x] B31: Remove dark-mode hardcoded surfaces from session phase timer/progress pills in Day theme.
 - [x] B32: Remove dark-mode hardcoded surfaces/shadows from Completion screen in Day theme.
 - [x] B33: Differentiate halo effects between Day and Night themes across shared character backdrops.
+- [x] B34: Start phase timer at midpoint of phase voice guidance instead of waiting for full prompt completion.
 
 Notes:
 - B01 complete: Session completion now triggers from explicit final-round completion state in the breathing engine instead of depending on elapsed-time threshold matching.
@@ -157,6 +158,7 @@ Notes:
 - B30 complete: Added a matching compact top-right Day/Night icon on Home and wired it to the shared persisted theme toggle handler.
 - B31 complete: Replaced hardcoded slate session timer/progress surfaces (`#334155` tracks and inactive pips) with day/night-aware values and softened Day-mode progress card shadow.
 - B32 complete: Replaced Completion screen hardcoded dark card/icon/mood/home-button surfaces with day/night-aware values and wired Completion to use the shared `theme` prop.
+- B34 complete: Updated `useAudioGuide.playPhase()` to resolve phase gating at halfway playback with a watchdog fallback, so the breathing count starts mid-prompt while keeping intro audio end-based.
 
 ## Audio Feature Tasks
 ## UI Enhancement Tasks

@@ -4,6 +4,7 @@ import { audioAssets } from '../utils/audioAssets';
 const VOICE_VOLUME = 0.92;
 const TICK_VOLUME = 0.65;
 const AMBIENT_VOLUME = 0.27;
+const HALFWAY_WATCHDOG_MS = 2500;
 
 let globalIntroAudio = null;
 let globalVoiceAudio = null;
@@ -151,6 +152,7 @@ export default function useAudioGuide() {
       volume = 1,
       loop = false,
       waitForEnd = false,
+      resolveAtHalfway = false,
       channel = 'voice',
     } = options;
 
@@ -163,6 +165,38 @@ export default function useAudioGuide() {
           const audio = new Audio(src);
           audio.loop = loop;
           audio.volume = volume;
+          let halfwayResolved = false;
+          let halfwayIntervalId = null;
+          let halfwayWatchdogId = null;
+
+          const clearHalfwayWatchers = () => {
+            if (halfwayIntervalId) {
+              clearInterval(halfwayIntervalId);
+              halfwayIntervalId = null;
+            }
+
+            if (halfwayWatchdogId) {
+              clearTimeout(halfwayWatchdogId);
+              halfwayWatchdogId = null;
+            }
+          };
+
+          const resolveHalfway = (result) => {
+            if (!resolveAtHalfway || halfwayResolved || token !== voiceTokenRef.current) return;
+            halfwayResolved = true;
+            clearHalfwayWatchers();
+            resolveActiveVoice(result);
+          };
+
+          const checkHalfway = () => {
+            const { duration, currentTime } = audio;
+            if (!Number.isFinite(duration) || duration <= 0) return;
+
+            if (currentTime >= duration / 2) {
+              resolveHalfway('halfway');
+            }
+          };
+
           voiceAudioRef.current = audio;
           voiceResolverRef.current = resolve;
           globalVoiceAudio = audio;
@@ -170,6 +204,7 @@ export default function useAudioGuide() {
 
           audio.onended = () => {
             if (token !== voiceTokenRef.current) return;
+            clearHalfwayWatchers();
             voiceAudioRef.current = null;
             globalVoiceAudio = null;
             resolveActiveVoice('ended');
@@ -177,6 +212,7 @@ export default function useAudioGuide() {
 
           audio.onerror = () => {
             if (token !== voiceTokenRef.current) return;
+            clearHalfwayWatchers();
             voiceAudioRef.current = null;
             globalVoiceAudio = null;
             resolveActiveVoice('error');
@@ -186,10 +222,18 @@ export default function useAudioGuide() {
           if (playPromise && typeof playPromise.catch === 'function') {
             playPromise.catch(() => {
               if (token !== voiceTokenRef.current) return;
+              clearHalfwayWatchers();
               voiceAudioRef.current = null;
               globalVoiceAudio = null;
               resolveActiveVoice('play-failed');
             });
+          }
+
+          if (waitForEnd && resolveAtHalfway) {
+            halfwayIntervalId = setInterval(checkHalfway, 80);
+            halfwayWatchdogId = setTimeout(() => {
+              resolveHalfway('halfway-watchdog');
+            }, HALFWAY_WATCHDOG_MS);
           }
 
           if (!waitForEnd) {
@@ -271,7 +315,12 @@ export default function useAudioGuide() {
   }, [resolveActiveIntro, resolveActiveVoice, stopIntro, stopVoice]);
 
   const playVoice = useCallback(
-    (src) => playAudio(src, { channel: 'voice', volume: VOICE_VOLUME, waitForEnd: true }),
+    (src, options = {}) => playAudio(src, {
+      channel: 'voice',
+      volume: VOICE_VOLUME,
+      waitForEnd: true,
+      ...options,
+    }),
     [playAudio]
   );
 
@@ -281,7 +330,7 @@ export default function useAudioGuide() {
   );
 
   const playPhase = useCallback(
-    (phase) => playVoice(audioAssets.phases[phase]),
+    (phase) => playVoice(audioAssets.phases[phase], { resolveAtHalfway: true }),
     [playVoice]
   );
 
