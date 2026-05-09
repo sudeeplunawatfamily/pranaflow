@@ -3,6 +3,7 @@ import { Pause, Play, Square, Waves, Wind } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useAudioGuide from '../hooks/useAudioGuide';
 import useBreathingEngine from '../hooks/useBreathingEngine';
+import useWakeLock from '../hooks/useWakeLock';
 import { playTick, stopAllAudio as stopTickAudio, setAudioEnabled } from '../utils/audioManager';
 import { phaseConfig } from '../utils/phaseConfig';
 import CharacterBackdrop from './CharacterBackdrop';
@@ -21,6 +22,10 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   const introSkippedRef = useRef(false);
   const introTransitionTimeoutRef = useRef(null);
   const sessionFlowActiveRef = useRef(true);
+
+  // Keep the screen awake while the breathing session is running.
+  // Wake lock is released automatically when the session ends or the component unmounts.
+  useWakeLock(sessionPhase === 'breathing');
 
   const handleExitSession = () => {
     sessionFlowActiveRef.current = false;

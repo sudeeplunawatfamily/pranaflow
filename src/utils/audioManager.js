@@ -1,5 +1,9 @@
 import { Howl, Howler } from 'howler';
 
+// Prevent iOS from suspending the AudioContext between phase transitions.
+// This is critical for audio to work reliably across all phases on iOS Safari.
+Howler.autoSuspend = false;
+
 const REGULAR_TICK_VOLUME = 0.42;
 const FINAL_TICK_VOLUME = 0.56;
 
@@ -8,6 +12,17 @@ let regularTick = null;
 let finalTick = null;
 let audioEnabled = true;
 let tickVolume = REGULAR_TICK_VOLUME;
+
+// Pre-warm Howl instances for each phase audio so iOS unlocks them
+// during the "Begin Session" gesture rather than lazily at phase start.
+const PHASE_AUDIO_SRCS = [
+  '/assets/audio/intro/welcome.mp3',
+  '/assets/audio/phases/inhale.mp3',
+  '/assets/audio/phases/hold.mp3',
+  '/assets/audio/phases/exhale.mp3',
+  '/assets/audio/ambient/ambient.mp3',
+];
+let prewarmHowls = [];
 
 /**
  * Initialize Howler instances for tick sounds.
@@ -23,7 +38,7 @@ export function initAudio() {
     src: ['/sounds/wood-tick.mp3'],
     volume: tickVolume,
     rate: 1.0,
-    html5: false,
+    html5: true,
     preload: true,
     onloaderror: (id, error) => {
       console.warn('Failed to load regular tick audio:', error);
@@ -34,12 +49,26 @@ export function initAudio() {
     src: ['/sounds/wood-tick.mp3'],
     volume: FINAL_TICK_VOLUME,
     rate: 1.18,
-    html5: false,
+    html5: true,
     preload: true,
     onloaderror: (id, error) => {
       console.warn('Failed to load final tick audio:', error);
     },
   });
+
+  // Pre-warm all phase audio so iOS <audio> elements are unlocked by
+  // the current user gesture and are ready to play without delay.
+  if (prewarmHowls.length === 0) {
+    prewarmHowls = PHASE_AUDIO_SRCS.map(
+      (src) =>
+        new Howl({
+          src: [src],
+          volume: 0,
+          html5: true,
+          preload: true,
+        })
+    );
+  }
 }
 
 /**
@@ -48,11 +77,24 @@ export function initAudio() {
  */
 export async function unlockAudio() {
   try {
+    // Resume Web Audio context if present (covers html5:false Howl instances if any remain).
     if (Howler.ctx && Howler.ctx.state === 'suspended') {
       await Howler.ctx.resume();
     }
   } catch (error) {
     console.warn('Failed to unlock audio context:', error);
+  }
+
+  // On iOS Safari, html5:true Howl instances use <audio> elements that also need
+  // a silent play triggered within a user gesture to be fully unlocked.
+  // Howler handles this internally via autoUnlock, but we force it here as a
+  // belt-and-suspenders measure by calling Howler's internal unlock path.
+  try {
+    if (typeof Howler._unlockAudio === 'function') {
+      Howler._unlockAudio();
+    }
+  } catch {
+    // Ignore — internal Howler API, may not exist in all versions.
   }
 }
 
@@ -127,7 +169,7 @@ export function playVoicePhase(src) {
       const howl = new Howl({
         src: [src],
         volume: VOICE_VOLUME,
-        html5: false,
+        html5: true,
         preload: true,
         onplay: () => {
           if (token !== voiceHowlToken) return;
@@ -200,7 +242,7 @@ export function startAmbientHowl(src) {
     return;
   }
   try {
-    ambientHowl = new Howl({ src: [src], loop: true, volume: AMBIENT_VOLUME, html5: false, preload: true });
+    ambientHowl = new Howl({ src: [src], loop: true, volume: AMBIENT_VOLUME, html5: true, preload: true });
     ambientHowl.play();
   } catch { /* ignore */ }
 }
