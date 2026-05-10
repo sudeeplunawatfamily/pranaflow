@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { audioAssets } from '../utils/audioAssets';
+import { selectPhaseAudio } from '../utils/phaseAudioSelector';
 import {
   playVoicePhase,
   stopVoicePhase,
@@ -327,8 +328,12 @@ export default function useAudioGuide() {
 
   // Phase voice goes through Howler so it shares the same AudioContext as ticks/ambient.
   // This eliminates iOS Safari's concurrent-stream blocking across phase transitions.
+  // round is passed so the anchor+pool selector can pick the right file.
   const playPhase = useCallback(
-    (phase) => playVoicePhase(audioAssets.phases[phase]),
+    (phase, round = 1) => {
+      const src = selectPhaseAudio(phase, round, audioAssets.phases[phase]);
+      return playVoicePhase(src);
+    },
     []
   );
 

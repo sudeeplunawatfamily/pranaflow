@@ -167,6 +167,20 @@ Notes:
 - B37 complete: Updated `useAudioGuide` voice channel to reuse one persistent `Audio` element across phase transitions (instead of creating a new element each phase) and added a short internal replay retry after reload when `play()` fails, improving Safari/iPhone phase prompt continuity.
 
 ## Audio Feature Tasks
+
+- [x] A01: Add procedural ocean breath guide sounds that dynamically match each phase duration.
+  - Created `src/utils/breathGuideAudio.js` with Web Audio API noise generation.
+  - Routes through `Howler.ctx` / `Howler.masterGain` — same AudioContext as voice/ambient.
+  - Inhale arc: 450 Hz → 2200 Hz (at 80%) → 1600 Hz — low → high → lower-high brightness.
+  - Exhale arc: 1500 Hz → 2100 Hz (at 25%) → 350 Hz — higher-low → high → low brightness.
+  - Hold phases are silent (intentional — avoids rushing-feeling during hold).
+  - Duration always sourced from actual phase timer (never hardcoded).
+  - Added `playBreathGuide`, `stopBreathGuide`, `pauseBreathGuide`, `resumeBreathGuide` exports to `audioManager.js`.
+  - Integrated into `BreathingSession.jsx`: starts on count=1, pauses on pause, resumes for remaining duration, stops on exit/complete/unmount.
+  - Added `breathGuideMode: 'ocean'` setting to `storage.js` defaults and normalization.
+  - Added "Guide" circular toggle button to `BreathingSetup.jsx` (green when on, matches Voice/Sound style).
+  - Build verified: no errors, 2.15s clean build.
+
 ## UI Enhancement Tasks
 - [x] F01: Implement reliable session audio using Howler.js with per-second wooden tick sounds.
 

@@ -152,7 +152,7 @@ export default function useBreathingEngine(settings, callbacks = {}) {
           await waitWhilePaused(token);
           if (!isRunningRef.current || runTokenRef.current !== token) return;
 
-          await callbacksRef.current.onBeforePhaseStart?.(phase);
+          await callbacksRef.current.onBeforePhaseStart?.(phase, round);
 
           await waitWhilePaused(token);
           if (!isRunningRef.current || runTokenRef.current !== token) return;

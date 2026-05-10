@@ -91,7 +91,7 @@ export default function HomeScreen({ onStartCustom, onExplorePresets, memory, se
         </PrimaryButton>
         <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em]" style={{ color: 'var(--theme-text-secondary)' }}>or</p>
         <PrimaryButton icon={Play} variant="secondary" onClick={onStartCustom} className="h-[46px] text-[14px]">
-          Design your Breathe
+          Design your Pranayam
         </PrimaryButton>
       </div>
     </motion.section>

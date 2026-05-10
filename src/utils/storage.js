@@ -16,6 +16,7 @@ export const defaultSettings = {
   voiceEnabled: true,
   soundEnabled: true,
   boxBreathing: false,
+  breathGuideMode: 'wind', // 'off' | 'wind'
 };
 
 export const defaultSavedRhythm = null;
@@ -38,6 +39,9 @@ export function normalizeSettings(candidate) {
     voiceEnabled: normalizeBoolean(candidate.voiceEnabled, defaultSettings.voiceEnabled),
     soundEnabled: normalizeBoolean(candidate.soundEnabled, defaultSettings.soundEnabled),
     boxBreathing: normalizeBoolean(candidate.boxBreathing, defaultSettings.boxBreathing),
+    breathGuideMode: ['off', 'wind'].includes(candidate.breathGuideMode)
+      ? candidate.breathGuideMode
+      : defaultSettings.breathGuideMode,
   };
 }
 

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import useAudioGuide from '../hooks/useAudioGuide';
 import useBreathingEngine from '../hooks/useBreathingEngine';
 import useWakeLock from '../hooks/useWakeLock';
-import { playTick, stopAllAudio as stopTickAudio, setAudioEnabled } from '../utils/audioManager';
+import { playTick, stopAllAudio as stopTickAudio, setAudioEnabled, playBreathGuide, stopBreathGuide, pauseBreathGuide, resumeBreathGuide } from '../utils/audioManager';
 import { phaseConfig } from '../utils/phaseConfig';
 import CharacterBackdrop from './CharacterBackdrop';
 import Header from './Header';
@@ -23,12 +23,18 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   const introTransitionTimeoutRef = useRef(null);
   const sessionFlowActiveRef = useRef(true);
 
+  // Track current phase so resumeBreathGuide knows the remaining duration.
+  const currentPhaseRef = useRef('inhale');
+  const currentPhaseCountRef = useRef(1);
+  const currentPhaseDurationRef = useRef(settings.inhaleSeconds);
+
   // Keep the screen awake while the breathing session is running.
   // Wake lock is released automatically when the session ends or the component unmounts.
   useWakeLock(sessionPhase === 'breathing');
 
   const handleExitSession = () => {
     sessionFlowActiveRef.current = false;
+    stopBreathGuide();
     audio.stopAllAudio();
      stopTickAudio();
     onEnd?.();
@@ -115,15 +121,15 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
       // Intro and countdown have already completed; session starts immediately.
       // Ambient is started in onBeforePhaseStart so voice prompts can claim audio focus first.
     },
-    onBeforePhaseStart: async (phase) => {
+    onBeforePhaseStart: async (phase, round) => {
       if (!sessionFlowActiveRef.current) return;
 
       if (settings.voiceEnabled) {
-        let result = await audio.playPhase(phase);
+        let result = await audio.playPhase(phase, round);
 
         // Retry once for transient playback failures before continuing.
         if (result === 'play-failed' || result === 'runtime-error' || result === 'error') {
-          result = await audio.playPhase(phase);
+          result = await audio.playPhase(phase, round);
         }
       }
 
@@ -131,7 +137,22 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
         audio.startAmbient();
       }
     },
-    onCount: (count, phaseDuration) => {
+    onCount: (count, phaseDuration, phase) => {
+      // Keep refs in sync so resume knows exactly how much time is left.
+      currentPhaseRef.current = phase;
+      currentPhaseCountRef.current = count;
+      currentPhaseDurationRef.current = phaseDuration;
+
+      // Play the breath guide sound at the very first count of each phase
+      // so it starts in sync with the timer and lasts exactly phaseDuration seconds.
+      if (count === 1 && settings.breathGuideMode !== 'off') {
+        playBreathGuide({
+          phase,
+          duration: phaseDuration,
+          soundType: settings.breathGuideMode,
+        });
+      }
+
       if (settings.soundEnabled) {
         const isLastSecond = count === phaseDuration;
         playTick(isLastSecond);
@@ -143,15 +164,32 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
         audio.pauseAmbient();
       }
       audio.stopTick();
+      // Pause the breath guide — it cannot be truly seeked, so we fade it out.
+      // On resume we restart it for the remaining phase duration.
+      pauseBreathGuide();
     },
     onResume: () => {
       audio.resumeVoice();
       if (settings.soundEnabled) {
         audio.resumeAmbient();
       }
+      // Restart breath guide for the remaining seconds in the current phase
+      // so the arc does not overlap or play beyond the timer.
+      if (settings.breathGuideMode !== 'off') {
+        const elapsed = currentPhaseCountRef.current; // counts already ticked
+        const remaining = currentPhaseDurationRef.current - elapsed + 1;
+        if (remaining > 0) {
+          resumeBreathGuide({
+            phase: currentPhaseRef.current,
+            remainingSeconds: remaining,
+            soundType: settings.breathGuideMode,
+          });
+        }
+      }
     },
     onComplete: ({ durationSeconds }) => {
       sessionFlowActiveRef.current = false;
+      stopBreathGuide();
       audio.stopAllAudio();
 
       onComplete?.({ durationSeconds });
@@ -189,6 +227,7 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
           clearTimeout(introTransitionTimeoutRef.current);
           introTransitionTimeoutRef.current = null;
         }
+        stopBreathGuide();
          stopTickAudio();
       };
     },

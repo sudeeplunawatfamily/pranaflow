@@ -7,6 +7,17 @@ import PrimaryButton from './PrimaryButton';
 import TimingStepperCard from './TimingStepperCard';
 import BreathingMethodSelector from './BreathingMethodSelector';
 
+// Ocean wave icon for the breath guide toggle (inline SVG to avoid external dep)
+function OceanIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12c1.5-2 3.5-2 5 0s3.5 2 5 0 3.5-2 5 0" />
+      <path d="M2 17c1.5-2 3.5-2 5 0s3.5 2 5 0 3.5-2 5 0" />
+      <path d="M2 7c1.5-2 3.5-2 5 0s3.5 2 5 0 3.5-2 5 0" />
+    </svg>
+  );
+}
+
 const phaseCards = [
   { key: 'inhaleSeconds', label: 'Breathe In', color: '#60A5FA', Icon: Wind, ariaLabel: 'Breathe in seconds' },
   { key: 'holdSeconds', label: 'Hold', color: '#A78BFA', Icon: Pause, ariaLabel: 'Hold seconds' },
@@ -320,6 +331,47 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
               <Music size={18} strokeWidth={2} />
             </motion.div>
             <span className="text-[11px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Sound</span>
+          </motion.button>
+
+          {/* Breath Guide Mode Button — cycles off → ocean → off */}
+          <motion.button
+            type="button"
+            role="switch"
+            aria-checked={settings.breathGuideMode !== 'off'}
+            whileActive={{ scale: 0.95 }}
+            className="flex flex-col items-center gap-1.5 transition-all group"
+            onClick={() => update('breathGuideMode', settings.breathGuideMode === 'wind' ? 'off' : 'wind')}
+            aria-label="Toggle breath guide wind"
+            title="Enable soft wind guide — a gentle breeze that follows each breath"
+          >
+            <motion.div
+              className="grid h-11 w-11 place-items-center rounded-full border transition-all group-hover:scale-110"
+              style={{
+                backgroundColor: settings.breathGuideMode !== 'off'
+                  ? '#34D399'
+                  : isNight
+                  ? '#334155'
+                  : '#EAF6FF',
+                borderColor: settings.breathGuideMode !== 'off'
+                  ? '#34D399'
+                  : 'var(--theme-surface-border)',
+                boxShadow: settings.breathGuideMode !== 'off'
+                  ? isNight
+                    ? '0 0 12px rgba(52,211,153,0.5)'
+                    : '0 0 8px rgba(52,211,153,0.3)'
+                  : 'none',
+                color: settings.breathGuideMode !== 'off'
+                  ? '#FFFFFF'
+                  : isNight
+                  ? '#34D399'
+                  : '#059669',
+              }}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <OceanIcon size={18} />
+            </motion.div>
+            <span className="text-[11px] font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Guide</span>
           </motion.button>
 
           {/* Rounds Control - Matching structure */}

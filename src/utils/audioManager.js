@@ -1,4 +1,10 @@
 import { Howl, Howler } from 'howler';
+import {
+  playBreathGuide as _playBreathGuide,
+  pauseBreathGuide as _pauseBreathGuide,
+  resumeBreathGuide as _resumeBreathGuide,
+  stopBreathGuide as _stopBreathGuide,
+} from './breathGuideAudio';
 
 // Prevent iOS from suspending the AudioContext between phase transitions.
 // This is critical for audio to work reliably across all phases on iOS Safari.
@@ -264,7 +270,7 @@ export function stopAmbientHowl() {
 // ─── Stop all ────────────────────────────────────────────────────────────────
 
 /**
- * Stop all audio playback (ticks, voice, ambient).
+ * Stop all audio playback (ticks, voice, ambient, breath guide).
  */
 export function stopAllAudio() {
   try {
@@ -275,6 +281,7 @@ export function stopAllAudio() {
   }
   stopVoicePhase();
   stopAmbientHowl();
+  _stopBreathGuide();
 }
 
 /**
@@ -324,4 +331,46 @@ export function cleanupAudio() {
   }
   stopVoicePhase();
   stopAmbientHowl();
+}
+
+// ─── Breath Guide (procedural ocean sound) ────────────────────────────────────
+// These thin wrappers expose the breathGuideAudio module through the central
+// audio manager so all audio lifecycle is coordinated in one place.
+
+/**
+ * Start a procedural breath guide sound for the current phase.
+ *
+ * @param {Object} opts
+ * @param {'inhale'|'exhale'|'hold'} opts.phase
+ * @param {number}                   opts.duration   - Phase duration in seconds.
+ * @param {'off'|'ocean'}            opts.soundType  - Guide mode.
+ * @param {number}                  [opts.volume]    - Volume override (0–1).
+ */
+export function playBreathGuide(opts) {
+  if (!audioEnabled) return;
+  _playBreathGuide(opts);
+}
+
+/** Stop the current breath guide sound (with anti-click fade). */
+export function stopBreathGuide() {
+  _stopBreathGuide();
+}
+
+/** Pause/suspend the breath guide sound. */
+export function pauseBreathGuide() {
+  _pauseBreathGuide();
+}
+
+/**
+ * Resume the breath guide for the remaining phase duration after a pause.
+ *
+ * @param {Object} opts
+ * @param {'inhale'|'exhale'|'hold'} opts.phase
+ * @param {number}                   opts.remainingSeconds
+ * @param {'off'|'ocean'}            opts.soundType
+ * @param {number}                  [opts.volume]
+ */
+export function resumeBreathGuide(opts) {
+  if (!audioEnabled) return;
+  _resumeBreathGuide(opts);
 }
