@@ -69,7 +69,7 @@ export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPr
 
       <div className="mt-5">
         <PrimaryButton icon={Sparkles} variant="secondary" onClick={onCreateCustom} className="h-[53px] text-[16px]">
-          Create my own rhythm
+          Design My Pranayam
         </PrimaryButton>
       </div>
     </motion.section>
