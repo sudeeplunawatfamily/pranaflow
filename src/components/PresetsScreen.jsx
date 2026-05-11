@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ChevronRight, Moon, Scale, Sparkles, Sprout, Target, Waves } from 'lucide-react';
+import { ChevronRight, Moon, Scale, Sparkles, Sprout, Target, Waves, Wind, Zap } from 'lucide-react';
 import CharacterBackdrop from './CharacterBackdrop';
 import Header from './Header';
 import PrimaryButton from './PrimaryButton';
@@ -10,6 +10,8 @@ const iconMap = {
   sleep: Moon,
   beginner: Sprout,
   balance: Scale,
+  flow: Wind,
+  coherent: Zap,
 };
 
 const colorMap = {
@@ -18,6 +20,8 @@ const colorMap = {
   purple: '#8755E8',
   orange: '#FF8A2A',
   teal: '#18AEB8',
+  green: '#10B981',
+  indigo: '#6366F1',
 };
 
 export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPreset, onCreateCustom, theme = 'night', onToggleTheme }) {

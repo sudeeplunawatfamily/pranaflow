@@ -16,6 +16,7 @@ export const defaultSettings = {
   voiceEnabled: true,
   soundEnabled: true,
   boxBreathing: false,
+  holdEnabled: true,
   breathGuideMode: 'wind', // 'off' | 'wind'
 };
 
@@ -39,6 +40,9 @@ export function normalizeSettings(candidate) {
     voiceEnabled: normalizeBoolean(candidate.voiceEnabled, defaultSettings.voiceEnabled),
     soundEnabled: normalizeBoolean(candidate.soundEnabled, defaultSettings.soundEnabled),
     boxBreathing: normalizeBoolean(candidate.boxBreathing, defaultSettings.boxBreathing),
+    // holdEnabled defaults to true for backward compat — older saved settings without this key
+    // should keep the hold phase active to preserve existing behavior.
+    holdEnabled: candidate.holdEnabled !== false,
     breathGuideMode: ['off', 'wind'].includes(candidate.breathGuideMode)
       ? candidate.breathGuideMode
       : defaultSettings.breathGuideMode,

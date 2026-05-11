@@ -68,6 +68,22 @@
   - Build verified: No TypeScript/JSX errors.
   - No breaking changes to other app screens or functionality.
 
+- [x] T37: Add holdEnabled — toggleable Hold phase via Hold card tap.
+  - Added `holdEnabled: true` to `defaultSettings` and `normalizeSettings` (backward-compat: missing = true).
+  - `TimingStepperCard` now accepts `isHoldCard`, `holdEnabled`, `onToggleHold`, `isBoxBreathing` props.
+    - Tapping card body toggles hold when `isHoldCard && !isBoxBreathing`.
+    - +/− buttons use `e.stopPropagation()` so they don't toggle the card.
+    - Disabled state: muted glass bg, no glow, shows "OFF" value, hides +/− buttons.
+  - `BreathingSetup` wires holdEnabled toggle; forces holdEnabled=true when box breathing turns ON.
+  - Rhythm pill, pattern text, per-round time, total breaths, and session time all exclude Hold when disabled.
+  - `useBreathingEngine` builds conditional phase cycle: [inhale, (hold?), exhale, (box-hold?)].
+  - `totalDurationSeconds` excludes hold duration when holdEnabled is false.
+  - All existing presets updated with `holdEnabled: true, boxBreathing: false`.
+  - Two new no-hold presets added: Flow (5-5) and Coherent (5-5) with holdEnabled: false.
+  - `App.jsx` onSelectPreset applies holdEnabled + boxBreathing from preset; saveRhythm persists holdEnabled.
+  - PresetsScreen icon/color maps extended for flow (Wind/green) and coherent (Zap/indigo).
+  - Build verified: ✓ 1971 modules transformed, no errors.
+
 ## Run Tasks
 
 - [x] R01: Start local dev server (`npm run dev`).

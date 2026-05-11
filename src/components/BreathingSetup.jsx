@@ -27,7 +27,27 @@ const phaseCards = [
 export default function BreathingSetup({ settings, setSettings, onBack, onBeginSession, onSaveRhythm, theme = 'night', onToggleTheme }) {
   const isNight = theme === 'night';
   const update = (key, value) => setSettings((prev) => ({ ...prev, [key]: value }));
-  const rhythmTotal = settings.inhaleSeconds + settings.holdSeconds + settings.exhaleSeconds;
+
+  // Treat missing holdEnabled as true (backward compat)
+  const holdEnabled = settings.holdEnabled !== false;
+
+  const toggleHold = () => {
+    // Box breathing forces hold on — ignore toggle attempt
+    if (settings.boxBreathing) return;
+    update('holdEnabled', !holdEnabled);
+  };
+
+  // When box breathing is turned ON, force holdEnabled true
+  const handleBoxBreathingToggle = (isBox) => {
+    setSettings((prev) => ({
+      ...prev,
+      boxBreathing: isBox,
+      ...(isBox ? { holdEnabled: true } : {}),
+    }));
+  };
+
+  const holdActive = settings.boxBreathing ? true : holdEnabled;
+  const rhythmTotal = settings.inhaleSeconds + (holdActive ? settings.holdSeconds : 0) + settings.exhaleSeconds;
   const cycleExtra = settings.boxBreathing ? 4 : 0;
   const estimatedSeconds = settings.rounds * (rhythmTotal + cycleExtra);
 
@@ -120,7 +140,7 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
 
         {/* Breathing Method Selector */}
         <div className="mt-3">
-          <BreathingMethodSelector isBoxBreathing={settings.boxBreathing} onToggle={(isBox) => update('boxBreathing', isBox)} theme={theme} />
+          <BreathingMethodSelector isBoxBreathing={settings.boxBreathing} onToggle={handleBoxBreathingToggle} theme={theme} />
         </div>
 
 
@@ -139,7 +159,7 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
           <div className="flex h-6 w-full overflow-hidden rounded-full gap-0.5">
             {[
               { key: 'inhale', seconds: settings.inhaleSeconds, color: '#60A5FA' },
-              { key: 'hold', seconds: settings.holdSeconds, color: '#A78BFA' },
+              ...(holdActive ? [{ key: 'hold', seconds: settings.holdSeconds, color: '#A78BFA' }] : []),
               { key: 'exhale', seconds: settings.exhaleSeconds, color: '#22D3EE' },
               ...(settings.boxBreathing ? [{ key: 'hold-box', seconds: 4, color: '#A78BFA' }] : []),
             ].map(({ key, seconds, color }) => (
@@ -163,7 +183,11 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
           {/* Pattern Indicator Below Rhythm Pill */}
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>
-              {[settings.inhaleSeconds, settings.holdSeconds, settings.exhaleSeconds].join('-')}s
+              {settings.boxBreathing
+                ? `${settings.inhaleSeconds}-${settings.holdSeconds}-${settings.exhaleSeconds}-4s`
+                : holdActive
+                ? `${settings.inhaleSeconds}-${settings.holdSeconds}-${settings.exhaleSeconds}s`
+                : `${settings.inhaleSeconds}-${settings.exhaleSeconds}s`}
             </span>
             <motion.div
               className="flex items-center gap-1.5 px-2 py-1 rounded-full"
@@ -214,32 +238,38 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          {phaseCards.map(({ key, label, color, Icon, ariaLabel }, index) => (
-            <div key={key} className="relative group">
-              {/* Hover Glow Background */}
-              <div
-                className="absolute -inset-0.5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{
-                  background: isNight
-                    ? `radial-gradient(circle, ${color}33 0%, ${color}0 70%)`
-                    : `radial-gradient(circle, ${color}22 0%, ${color}0 70%)`,
-                  zIndex: -1,
-                }}
-              />
-              <TimingStepperCard
-                label={label}
-                value={settings[key]}
-                onIncrease={() => update(key, Math.min(10, settings[key] + 1))}
-                onDecrease={() => update(key, Math.max(1, settings[key] - 1))}
-                icon={Icon}
-                color={color}
-                ariaLabel={ariaLabel}
-                minValue={1}
-                maxValue={10}
-              />
-
-            </div>
-          ))}
+          {phaseCards.map(({ key, label, color, Icon, ariaLabel }) => {
+            const isHoldCard = key === 'holdSeconds';
+            return (
+              <div key={key} className="relative group">
+                {/* Hover Glow Background */}
+                <div
+                  className="absolute -inset-0.5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    background: isNight
+                      ? `radial-gradient(circle, ${color}33 0%, ${color}0 70%)`
+                      : `radial-gradient(circle, ${color}22 0%, ${color}0 70%)`,
+                    zIndex: -1,
+                  }}
+                />
+                <TimingStepperCard
+                  label={label}
+                  value={settings[key]}
+                  onIncrease={() => update(key, Math.min(10, settings[key] + 1))}
+                  onDecrease={() => update(key, Math.max(1, settings[key] - 1))}
+                  icon={Icon}
+                  color={color}
+                  ariaLabel={ariaLabel}
+                  minValue={1}
+                  maxValue={10}
+                  isHoldCard={isHoldCard}
+                  holdEnabled={holdEnabled}
+                  onToggleHold={isHoldCard ? toggleHold : undefined}
+                  isBoxBreathing={settings.boxBreathing}
+                />
+              </div>
+            );
+          })}
         </motion.div>
 
 
@@ -450,7 +480,7 @@ export default function BreathingSetup({ settings, setSettings, onBack, onBeginS
             <div style={{ borderLeft: '1px solid var(--theme-surface-border)', borderRight: '1px solid var(--theme-surface-border)' }}>
               <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary)' }}>Total Breaths</p>
               <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--theme-text-primary)' }}>
-                {settings.rounds * (settings.boxBreathing ? 4 : 3)}
+                {settings.rounds * (settings.boxBreathing ? 4 : holdActive ? 3 : 2)}
               </p>
             </div>
             <div>

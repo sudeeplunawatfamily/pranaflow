@@ -3,6 +3,10 @@ import { phaseOrder } from '../utils/phaseConfig';
 
 export default function useBreathingEngine(settings, callbacks = {}) {
   const { inhaleSeconds, holdSeconds, exhaleSeconds, rounds, boxBreathing } = settings;
+  // Treat missing holdEnabled as true (backward compat with older saved sessions)
+  const holdEnabled = settings.holdEnabled !== false;
+  // Box breathing always forces hold on
+  const holdActive = boxBreathing ? true : holdEnabled;
   const callbacksRef = useRef(callbacks);
   const isRunningRef = useRef(false);
   const isPausedRef = useRef(false);
@@ -18,11 +22,12 @@ export default function useBreathingEngine(settings, callbacks = {}) {
 
   const totalDurationSeconds = useMemo(
     () => {
-      const cycleTime = inhaleSeconds + holdSeconds + exhaleSeconds;
+      const holdTime = holdActive ? holdSeconds : 0;
+      const cycleTime = inhaleSeconds + holdTime + exhaleSeconds;
       const extraBoxHold = boxBreathing ? 4 : 0;
       return rounds * (cycleTime + extraBoxHold);
     },
-    [inhaleSeconds, holdSeconds, exhaleSeconds, rounds, boxBreathing]
+    [inhaleSeconds, holdSeconds, exhaleSeconds, rounds, boxBreathing, holdActive]
   );
 
   const getPhaseDuration = useCallback(
@@ -135,7 +140,7 @@ export default function useBreathingEngine(settings, callbacks = {}) {
         // Build phase cycle for this round
         const phases = [
           { phase: 'inhale', duration: inhaleSeconds },
-          { phase: 'hold', duration: holdSeconds },
+          ...(holdActive ? [{ phase: 'hold', duration: holdSeconds }] : []),
           { phase: 'exhale', duration: exhaleSeconds },
         ];
 
@@ -181,7 +186,7 @@ export default function useBreathingEngine(settings, callbacks = {}) {
         rounds,
       });
     })();
-  }, [getPhaseDuration, rounds, totalDurationSeconds, waitOneSecond, waitWhilePaused, inhaleSeconds, holdSeconds, exhaleSeconds, boxBreathing]);
+  }, [getPhaseDuration, rounds, totalDurationSeconds, waitOneSecond, waitWhilePaused, inhaleSeconds, holdSeconds, exhaleSeconds, boxBreathing, holdActive]);
 
   useEffect(() => {
     callbacksRef.current = callbacks;

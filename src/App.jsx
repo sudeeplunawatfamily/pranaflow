@@ -100,9 +100,12 @@ export default function App() {
   };
 
   const saveRhythm = (source, name = 'Your Rhythm') => {
+    const holdActive = source.boxBreathing ? true : source.holdEnabled !== false;
     const pattern = source.boxBreathing
       ? `Box • ${source.inhaleSeconds}s • ${source.holdSeconds}s • ${source.exhaleSeconds}s`
-      : `${source.inhaleSeconds}-${source.holdSeconds}-${source.exhaleSeconds}`;
+      : holdActive
+      ? `${source.inhaleSeconds}-${source.holdSeconds}-${source.exhaleSeconds}`
+      : `${source.inhaleSeconds}-${source.exhaleSeconds}`;
     setSavedRhythm({
       id: 'your-rhythm',
       name,
@@ -110,6 +113,8 @@ export default function App() {
       inhaleSeconds: source.inhaleSeconds,
       holdSeconds: source.holdSeconds,
       exhaleSeconds: source.exhaleSeconds,
+      holdEnabled: holdActive,
+      boxBreathing: source.boxBreathing === true,
       description: 'Your saved breathing pattern',
       color: 'blue',
       isCustom: true,
@@ -159,6 +164,9 @@ export default function App() {
               inhaleSeconds: preset.inhaleSeconds,
               holdSeconds: preset.holdSeconds,
               exhaleSeconds: preset.exhaleSeconds,
+              // Apply holdEnabled and boxBreathing from preset; default to true/false if not set
+              holdEnabled: preset.holdEnabled !== false,
+              boxBreathing: preset.boxBreathing === true,
             }));
             setCurrentScreen('setup');
           }}
