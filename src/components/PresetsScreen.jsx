@@ -42,7 +42,7 @@ export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPr
       </p>
 
       <CharacterBackdrop className="mt-5" glowSizeClass="h-56 w-56">
-          <img src="/assets/images/Inhale_pose.png" alt="Breathing presets pose" className="relative z-10 mx-auto w-[245px] object-contain" />
+          <img src="/assets/images/Hold_pose.png" alt="Breathing presets pose" className="relative z-10 mx-auto w-[245px] object-contain" />
       </CharacterBackdrop>
 
       <div className="mt-4 space-y-3">
@@ -82,7 +82,7 @@ export default function PresetsScreen({ presets, savedRhythm, onBack, onSelectPr
 
       <div className="mt-5">
         <PrimaryButton icon={Sparkles} variant="secondary" onClick={onCreateCustom} className="h-[53px] text-[16px]">
-          {isDay ? 'Customize Your Own Flow' : 'Design My Pranayam'}
+          {isDay ? 'Design My Pranayam' : 'Design My Pranayam'}
         </PrimaryButton>
       </div>
     </motion.section>
