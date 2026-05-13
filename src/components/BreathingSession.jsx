@@ -249,13 +249,13 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
   const phase = phaseConfig[engine.currentPhase];
   const PhaseIcon = phaseIcons[engine.currentPhase];
   const sessionUi = {
-    progressCardShadow: isNight ? '0 8px 22px rgba(15,23,42,0.22)' : '0 8px 22px rgba(36,135,234,0.14)',
+    progressCardShadow: isNight ? '0 8px 22px rgba(15,23,42,0.22)' : '0 8px 22px rgba(75,54,33,0.10)',
     roundBadgeBg: isNight
       ? 'color-mix(in srgb, var(--theme-bg-app) 88%, #000)'
-      : 'color-mix(in srgb, var(--theme-bg-app) 84%, white)',
-    progressTrackBg: isNight ? 'rgba(51,65,85,0.85)' : '#DDEEFE',
-    phaseTrackBg: isNight ? 'rgba(51,65,85,0.90)' : '#DDEEFE',
-    pipInactive: isNight ? '#334155' : '#BFDDF6',
+      : 'rgba(255,250,242,0.90)',
+    progressTrackBg: isNight ? 'rgba(51,65,85,0.85)' : 'rgba(210,195,175,0.35)',
+    phaseTrackBg: isNight ? 'rgba(51,65,85,0.90)' : 'rgba(210,195,175,0.35)',
+    pipInactive: isNight ? '#334155' : 'rgba(180,160,135,0.40)',
   };
 
   // Intro screen: listening to intro audio
@@ -267,11 +267,11 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
           <button
             type="button"
             onClick={handleSkipIntro}
-            className="inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[11px] font-bold shadow-[0_8px_18px_rgba(15,23,42,0.2)] transition hover:brightness-[1.04] active:scale-[0.97]"
-            style={{ borderColor: 'var(--theme-surface-border)', backgroundColor: 'var(--theme-surface)', color: 'var(--theme-text-secondary)' }}
+            className="inline-flex h-8 items-center gap-1 rounded-full border px-3 text-[11px] font-bold transition hover:brightness-[1.04] active:scale-[0.97]"
+            style={{ borderColor: 'var(--theme-surface-border)', backgroundColor: isNight ? 'var(--theme-surface)' : 'rgba(255,250,242,0.88)', color: 'var(--theme-text-secondary)', boxShadow: isNight ? '0 8px 18px rgba(15,23,42,0.2)' : '0 8px 18px rgba(75,54,33,0.10)' }}
             aria-label="Skip intro"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-[#60A5FA]" />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-brand)' }} />
             Skip
           </button>
         </div>
@@ -287,7 +287,7 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
             <p className="text-[28px] font-extrabold leading-tight" style={{ color: 'var(--theme-text-primary)' }}>
               Welcome to PranaFlow
             </p>
-            <p className="text-[20px] font-bold text-[#60A5FA]">
+            <p className="text-[20px] font-bold" style={{ color: 'var(--theme-brand)' }}>
               "Breathe is life, let's master it"
             </p>
           </div>
@@ -308,7 +308,8 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
             initial={{ scale: 1.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="font-display text-[120px] font-extrabold leading-none text-[#60A5FA]"
+            className="font-display text-[120px] font-extrabold leading-none"
+            style={{ color: 'var(--theme-brand)' }}
           >
             {countdown}
           </motion.p>
@@ -327,8 +328,8 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
       <div
         className="relative z-[1] flex items-center gap-3 rounded-2xl border px-3 py-3"
         style={{
-          borderColor: 'var(--theme-surface-border)',
-          backgroundColor: 'var(--theme-surface)',
+          borderColor: isNight ? 'var(--theme-surface-border)' : 'rgba(120,90,55,0.12)',
+          backgroundColor: isNight ? 'var(--theme-surface)' : 'rgba(255,250,242,0.88)',
           boxShadow: sessionUi.progressCardShadow,
         }}
       >
@@ -501,8 +502,13 @@ export default function BreathingSession({ settings, onComplete, onEnd, onPhaseC
             }
           }}
           aria-label={engine.isPaused ? 'Resume session' : 'Pause session'}
-          className="grid h-11 w-11 place-items-center rounded-full border shadow-[0_8px_18px_rgba(15,23,42,0.22)] transition active:scale-[0.96]"
-          style={{ borderColor: 'var(--theme-surface-border)', backgroundColor: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
+          className="grid h-11 w-11 place-items-center rounded-full border transition active:scale-[0.96]"
+          style={{
+            borderColor: 'var(--theme-surface-border)',
+            backgroundColor: isNight ? 'var(--theme-surface)' : 'rgba(255,250,242,0.88)',
+            color: 'var(--theme-text-primary)',
+            boxShadow: isNight ? '0 8px 18px rgba(15,23,42,0.22)' : '0 8px 18px rgba(75,54,33,0.10)',
+          }}
         >
           {engine.isPaused ? <Play size={16} /> : <Pause size={16} />}
         </button>

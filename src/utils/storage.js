@@ -15,6 +15,9 @@ export const defaultSettings = {
   rounds: 5,
   voiceEnabled: true,
   soundEnabled: true,
+  voiceProfile: 'hindi-calm',
+  ambientSound: 'ocean-waves',
+  tickSound: 'soft-chime',
   boxBreathing: false,
   holdEnabled: true,
   breathGuideMode: 'wind', // 'off' | 'wind'
@@ -39,6 +42,15 @@ export function normalizeSettings(candidate) {
     rounds: clamp(Number(candidate.rounds) || defaultSettings.rounds, 1, 50),
     voiceEnabled: normalizeBoolean(candidate.voiceEnabled, defaultSettings.voiceEnabled),
     soundEnabled: normalizeBoolean(candidate.soundEnabled, defaultSettings.soundEnabled),
+    voiceProfile: ['hindi-calm', 'english-soft'].includes(candidate.voiceProfile)
+      ? candidate.voiceProfile
+      : defaultSettings.voiceProfile,
+    ambientSound: ['off', 'ocean-waves', 'rain', 'forest', 'soft-om', 'temple-chime'].includes(candidate.ambientSound)
+      ? candidate.ambientSound
+      : defaultSettings.ambientSound,
+    tickSound: ['soft-chime', 'wooden-tap', 'bell', 'off'].includes(candidate.tickSound)
+      ? candidate.tickSound
+      : defaultSettings.tickSound,
     boxBreathing: normalizeBoolean(candidate.boxBreathing, defaultSettings.boxBreathing),
     // holdEnabled defaults to true for backward compat — older saved settings without this key
     // should keep the hold phase active to preserve existing behavior.

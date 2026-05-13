@@ -20,6 +20,7 @@ const styles = {
 };
 
 export default function PrimaryButton({ children, icon: Icon, variant = 'primary', onClick, className = '', type = 'button' }) {
+  const isPrimary = variant === 'primary';
   return (
     <motion.button
       whileTap={{ scale: 0.97 }}

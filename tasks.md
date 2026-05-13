@@ -29,9 +29,112 @@
 
 ## In Progress
 
-- [x] All currently tracked tasks completed.
+- [x] T38: Warm day-theme visual retheme across all screens.
+  - Updated `AppShell.jsx` day-mode CSS palette to warm cream/navy tokens (backgroundCream #FFF7EC, cardCream, textNavy, warmBorder, warmShadow).
+  - Added mountain/lake background image layer (`/assets/images/background/background.png`) with warm cream overlay gradient in day mode.
+  - Added `day-theme` class to `main` element for scoped CSS overrides.
+  - Added Playfair Display font import in `index.css` + `.font-serif-display` utility class.
+  - Added `day-theme` slider thumb CSS rules for warm cream border.
+  - Updated `HomeScreen.jsx`: new heading "Design your pranayama", serif headings, warm CTA order (Create Your Breath Flow primary, Explore Presets secondary), warm card/button styling.
+  - Updated `PresetsScreen.jsx`: warm card backgrounds, updated title "Presets", warm border/shadow.
+  - Updated `BreathingSetup.jsx`: title "Customize Each Phase", warm rhythm pill, warm duration card, theme-aware phase colors for stepper cards and rhythm segments, day-mode audio toggle inactive backgrounds, warm CTA "Begin This Flow".
+  - Updated `BreathingSession.jsx`: warm progress card, warm round badge bg, warm progress/phase track colors, warm intro Skip button, countdown brand color, intro quote brand color, warm pause button.
+  - Updated `CompletionScreen.jsx`: "Flow Complete" heading (day), Playfair Display headings, warm card bg/border/shadow, updated phase accent colors (#4A8FE7 / #8B6AD8 / #37AAA4), brand-color round count.
+  - Updated `Header.jsx`: warm button bg/border/shadow in day mode, Playfair Display logo text in day mode.
+  - Updated `BreathingMethodSelector.jsx`: warm card backgrounds and theme-aware accent colors.
+  - Updated `phaseConfig.js`: phase colors updated to warm accents (#4A8FE7 inhale, #8B6AD8 hold, #37AAA4 exhale).
+  - Updated `CharacterBackdrop` halo decor CSS vars in AppShell for warm golden glow instead of blue.
+  - Build verified: ✓ 1971 modules transformed, no errors.
+  - All existing breathing engine, audio, timer, localStorage, and navigation behavior preserved.
+- [x] T39: Refine Home screen for premium warm-day theme polish.
+  - Updated `HomeScreen.jsx` only (no breathing engine/audio/navigation logic changes).
+  - Refined hero halo to layered, diffused sunrise mist gradient with soft blur and subtle pulse.
+  - Removed decorative dots/grey-underbar elements beneath character and preserved calm negative space.
+  - Tightened top/header vertical rhythm and aligned lotus + `PranaFlow` with right theme toggle on one polished row.
+  - Refined `PRANAYAMA` label sizing/tracking/color and updated hero supporting copy to include “today”.
+  - Upgraded CTA area: premium deep-navy gradient primary button + warm translucent glass secondary button.
+  - Removed “OR” divider and added subtle lower readability gradient behind CTA region.
+  - Added very gentle character breathing motion and reduced sparkle intensity for a calmer sunrise mood.
+  - Preserved `Create Your Breath Flow` -> setup and `Explore Presets` -> presets behavior.
+- [x] T40: Refactor setup into guided multi-step "Design Your Pranayama" flow.
+  - Rebuilt `BreathingSetup.jsx` into 3 guided stages: Design Your Flow -> Customize Each Phase -> Review Your Flow.
+  - Preserved existing settings update pattern and `onBeginSession` routing/session start behavior.
+  - Preserved natural vs box breathing logic and hold-phase compatibility (`holdEnabled` still supported in phase customization).
+  - Moved voice/ambient/tick controls into a modal bottom sheet with clean review rows on the main screen.
+  - Added reusable setup UI components: `GlassCard`, `SetupSegmentedControl`, `BreathFlowDiagram`, `PhaseSliderCard`, `SettingsRow`, `SoundSettingsSheet`.
+  - Added persisted display preferences for review sheet labels in `storage.js`: `voiceProfile`, `ambientSound`, `tickSound`.
+  - Build verified: ✓ 1975 modules transformed, no errors.
+- [x] T41: Refactor custom setup flow from 3 screens to 2 screens.
+  - Updated `BreathingSetup.jsx` flow to: Design Your Flow -> Review Your Flow -> Begin This Flow.
+  - Removed Customize Each Phase from required navigation path (kept safe behavior by replacing with inline phase editor sheet).
+  - Made `BreathFlowDiagram.jsx` phase nodes and center flow target interactive.
+  - Added premium cream-glass phase editor bottom sheet with all three phase controls in one place (Inhale/Hold/Exhale), live updates, and Done close action.
+  - Preserved existing Natural/Box logic, hold-enabled behavior, state persistence/localStorage updates, and review-stage settings controls.
+  - Kept breathing engine/audio/timer/presets logic unchanged.
+- [x] T42: Refine Design Your Flow diagram to premium breath mandala.
+  - Reworked `BreathFlowDiagram.jsx` from dotted orbit to organic gradient SVG flow arcs (Inhale->Hold, Hold->Exhale, Exhale->Inhale).
+  - Added warm central mandala core with subtle lotus watermark and improved "YOUR Breath Flow" typography.
+  - Upgraded phase nodes to cream-glass circular buttons with soft phase-colored aura layers, calmer shadows, and explicit accessibility labels.
+  - Kept node and center interactions fully intact (opens existing phase customization sheet, live values unchanged).
+  - Polished setup hero card integration and flow-summary/button styling in `BreathingSetup.jsx` to match warm premium day theme.
+  - No changes to breathing engine, timers, audio, routing, presets, or localStorage behavior.
 
-## UI/UX Redesign Tasks
+- [x] T43: Redesign Review Your Flow screen for warm premium editorial feel.
+  - Replaced two separate heavy GlassCards with: (1) a transparent glass hero panel and (2) one unified settings+stats panel.
+  - Hero: transparent glass container (rgba 0.42 bg, blur 10px), warm mist halo radial gradient (255,248,235 → transparent), three-arc SVG breath ring (thin 2.5px gradient strokes, phase colors at 0.42–0.55 opacity), larger character (220px), animated breathing pulse (scale 1→1.015, 8s infinite), and compact phase summary pill with soft tinted segments.
+  - Settings panel: single rounded-[28px] glass container with subtle divider rows (56px height each), lucide icons per row (RotateCcw/Mic/Music2/Bell), soft chevron navigation, stats row at bottom with top divider inside same panel.
+  - CTA helper text color updated to rgba(7,29,54,0.46) for softer feel.
+  - All existing onClick sheet/modal handlers, rounds/voice/ambient/tick values, settings persistence, and Begin This Flow flow preserved.
+  - Build verified: ✓ 1974 modules transformed, no errors.
+
+- [x] T44: Make flow graphics respond to Box Breathing mode.
+  - Updated `BreathFlowDiagram.jsx` to accept `boxBreathing` and render a square-loop visual in box mode with four animated segments.
+  - Updated node placement and labels in box mode (inhale top, hold right, exhale bottom) and added a subtle decorative left-side hold marker for the second hold phase.
+  - Updated setup/review summaries in `BreathingSetup.jsx` to show `Hold ... x2` when box mode is active.
+  - Updated Review hero ring to switch from triangular circular arcs to a box-loop ring when `boxBreathing` is selected.
+  - No changes to breathing engine/audio/timer/localStorage/routing behavior.
+  - Build verified: ✓ 1974 modules transformed, no errors.
+
+- [x] T45: Polish Box Breathing diagram aesthetics in Design step.
+  - Refined box-mode path in `BreathFlowDiagram.jsx` from harsh straight edges to rounded-corner continuous segments.
+  - Reduced stroke weight and softened guide dash styling for a lighter premium look.
+  - Removed the extra left-side hold badge to reduce visual clutter.
+  - Slightly adjusted top/bottom node offsets in box mode for cleaner balance around the center core.
+  - No behavior changes; interactions and timing logic preserved.
+  - Build verified: ✓ 1974 modules transformed, no errors.
+
+- [x] T46: Add box-breathing explainer header in diagram card.
+  - Updated `BreathingSetup.jsx` to show a conditional header above the diagram when Box Breathing is selected.
+  - Header text: "Box Breathing : Used by Navy seals to calm down and sleep effectively".
+  - Kept all existing setup flow behavior and interactions unchanged.
+  - Build verified: ✓ 1974 modules transformed, no errors.
+
+- [x] T47: Stylize Box Breathing header in Design card.
+  - Refined the conditional box-breathing header into a premium mini-banner with warm gradient surface, subtle inset highlight, and soft shadow.
+  - Added hierarchy with a top chip label ("Box Breathing"), small supporting meta line ("4-step calm protocol"), and polished body copy.
+  - Preserved existing behavior and conditional visibility logic.
+  - Build verified: ✓ 1974 modules transformed, no errors.
+
+- [x] T48: Fill phase circles with phase colors and white text.
+  - Updated `BreathFlowDiagram.jsx` node circles (Inhale/Hold/Exhale) to use solid phase-color fills.
+  - Updated node label/value text to white for improved contrast and visual clarity.
+  - Kept node sizing, interactions, and breathing flow behavior unchanged.
+  - Build verified: ✓ 1974 modules transformed, no errors.
+
+- [x] T49: Redesign Customize Breath Flow popup and keep Hold OFF control.
+  - Refined `BreathingSetup.jsx` phase editor bottom sheet with upgraded warm-glass styling, stronger hierarchy, and cleaner spacing.
+  - Redesigned each phase row with improved gradient card surfaces, refined slider container, and clearer value presentation.
+  - Replaced one-way hold enable action with persistent Hold ON/OFF pill controls, explicitly keeping an OFF button in the popup.
+  - Preserved all timing/state behavior; hold toggle remains blocked in Box Breathing mode while still editable otherwise.
+  - Build verified: ✓ 1974 modules transformed, no errors.
+
+- [x] T50: Change flow diagram when Hold is OFF.
+  - Updated `BreathFlowDiagram.jsx` to detect hold-off mode (non-box) and render a distinct 2-phase inhale/exhale loop instead of the 3-phase triangle.
+  - In hold-off mode, hold node is removed and inhale/exhale node positions adapt to the new shape.
+  - Preserved existing box-breathing and hold-on visuals.
+  - Build verified: ✓ 1974 modules transformed, no errors.
+
+
 
 - [x] T34: Implement mobile-first redesign of Setup screen ("Set your breathing rhythm").
   - Created `TimingStepperCard.jsx` component (vertical +/− stepper replacing sliders).
@@ -89,6 +192,11 @@
 - [x] R01: Start local dev server (`npm run dev`).
 - [x] R02: Stop local dev server.
 - [x] R03: Start local dev server again after bugfix.
+- [x] R04: Add an automated screenshot capture script for all primary app screens/states.
+  - Added `scripts/capture-screenshots.mjs` using Playwright with a mobile viewport.
+  - Script boots a local Vite server, seeds localStorage for deterministic day-theme captures, and saves screenshots under `screenshots/`.
+  - Captures: home, setup, presets, intro, countdown, session inhale, session hold, session exhale, completion.
+  - Runs via `npm run screenshots`.
 
 ## Bug Fix Tasks
 

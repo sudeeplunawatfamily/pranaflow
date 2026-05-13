@@ -40,37 +40,37 @@ export default function AppShell({ children, phaseColor = null, theme = 'night' 
         '--decor-halo-outer-blur': '18px',
       }
     : {
-        '--theme-bg-app': '#F7FBFF',
-        '--theme-surface': '#FFFFFF',
-        '--theme-surface-border': 'rgba(214,234,255,1)',
-        '--theme-text-primary': '#071D55',
-        '--theme-text-secondary': '#657899',
-        '--theme-brand': '#2487EA',
-        '--btn-primary-bg': 'linear-gradient(90deg, #1E7FE6 0%, #38BBF2 100%)',
+        '--theme-bg-app': '#FFF7EC',
+        '--theme-surface': 'rgba(255, 250, 242, 0.92)',
+        '--theme-surface-border': 'rgba(120, 90, 55, 0.12)',
+        '--theme-text-primary': '#071D36',
+        '--theme-text-secondary': '#5F6E7C',
+        '--theme-brand': '#4A8FE7',
+        '--btn-primary-bg': 'linear-gradient(135deg, #071D36 0%, #0E2A49 100%)',
         '--btn-primary-text': '#FFFFFF',
-        '--btn-primary-shadow': '0 12px 30px rgba(36,135,234,0.28)',
-        '--btn-secondary-bg': '#FFFFFF',
-        '--btn-secondary-text': '#2487EA',
-        '--btn-secondary-border': '#D6EAFF',
-        '--btn-secondary-shadow': '0 10px 26px rgba(36,135,234,0.12)',
-        '--btn-danger-bg': 'linear-gradient(90deg, #F74D61 0%, #EF6C4F 100%)',
+        '--btn-primary-shadow': '0 14px 34px rgba(7,29,54,0.22)',
+        '--btn-secondary-bg': 'rgba(255, 250, 242, 0.78)',
+        '--btn-secondary-text': '#071D36',
+        '--btn-secondary-border': 'rgba(7, 29, 54, 0.10)',
+        '--btn-secondary-shadow': '0 8px 22px rgba(75,54,33,0.10)',
+        '--btn-danger-bg': 'linear-gradient(90deg, #B91C1C 0%, #DC2626 100%)',
         '--btn-danger-text': '#FFFFFF',
-        '--btn-danger-shadow': '0 12px 30px rgba(247,77,97,0.28)',
-        '--btn-icon-bg': 'rgba(255,255,255,0.9)',
-        '--btn-icon-text': '#2487EA',
-        '--decor-particle-a': 'rgba(140,202,242,0.18)',
-        '--decor-particle-b': 'rgba(215,241,250,0.20)',
-        '--decor-particle-c': 'rgba(191,231,248,0.22)',
+        '--btn-danger-shadow': '0 12px 30px rgba(185,28,28,0.28)',
+        '--btn-icon-bg': 'rgba(255, 250, 242, 0.90)',
+        '--btn-icon-text': '#071D36',
+        '--decor-particle-a': 'rgba(74,143,231,0.10)',
+        '--decor-particle-b': 'rgba(139,106,216,0.10)',
+        '--decor-particle-c': 'rgba(55,170,164,0.10)',
         '--decor-sparkle-a': 'rgba(255,255,255,0.80)',
-        '--decor-sparkle-b': 'rgba(200,232,250,0.80)',
-        '--decor-wave-a': 'rgba(140,202,242,0.14)',
-        '--decor-wave-b': 'rgba(191,231,248,0.20)',
-        '--decor-wave-c': 'rgba(234,246,255,0.55)',
-        '--decor-dot-a': '#2487EA',
-        '--decor-dot-b': '#8CCAF2',
-        '--decor-halo-outer': 'radial-gradient(circle, transparent 30%, rgba(140,202,242,0.28) 54%, rgba(191,231,248,0.22) 74%, transparent 100%)',
-        '--decor-halo-core': 'radial-gradient(circle, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.74) 28%, rgba(205,235,255,0.50) 56%, rgba(140,202,242,0) 84%)',
-        '--decor-halo-outer-opacity': '0.86',
+        '--decor-sparkle-b': 'rgba(210,190,160,0.70)',
+        '--decor-wave-a': 'rgba(210,190,155,0.16)',
+        '--decor-wave-b': 'rgba(230,210,180,0.22)',
+        '--decor-wave-c': 'rgba(248,234,216,0.55)',
+        '--decor-dot-a': '#4A8FE7',
+        '--decor-dot-b': '#8B6AD8',
+        '--decor-halo-outer': 'radial-gradient(circle, transparent 28%, rgba(255,220,170,0.20) 52%, rgba(255,200,130,0.12) 72%, transparent 100%)',
+        '--decor-halo-core': 'radial-gradient(circle, rgba(255,255,255,0.90) 0%, rgba(255,248,235,0.70) 28%, rgba(255,235,205,0.40) 56%, rgba(255,220,170,0) 84%)',
+        '--decor-halo-outer-opacity': '0.75',
         '--decor-halo-outer-scale': '1.26',
         '--decor-halo-core-scale': '1.18',
         '--decor-halo-outer-blur': '14px',
@@ -79,15 +79,46 @@ export default function AppShell({ children, phaseColor = null, theme = 'night' 
   return (
     <div className="min-h-dvh flex justify-center" style={{ backgroundColor: 'var(--theme-bg-app)', ...palette }}>
       <main
-        className="relative min-h-dvh w-full max-w-[430px] overflow-x-hidden px-4 pb-4 pt-4 sm:px-5 sm:pt-5"
+        className={`relative min-h-dvh w-full max-w-[430px] overflow-x-hidden ${isNight ? '' : 'day-theme'}`}
         style={{
+          /* Horizontal padding: 16px + safe area sides */
+          paddingLeft: 'max(16px, env(safe-area-inset-left))',
+          paddingRight: 'max(16px, env(safe-area-inset-right))',
+          /* Top padding respects status bar / Dynamic Island */
+          paddingTop: 'max(16px, env(safe-area-inset-top))',
+          /* Bottom padding respects home indicator */
+          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
           background: isNight
             ? `radial-gradient(circle at 50% 38%, rgba(148,163,184,0.13) 0%, rgba(30,41,59,0) 44%), linear-gradient(180deg, #0F172A 0%, #1E293B 58%, ${toColor} 100%)`
-            : `radial-gradient(circle at 50% 38%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 44%), linear-gradient(180deg, #F7FBFF 0%, #EAF6FF 58%, ${toColor} 100%)`,
+            : undefined,
           transition: 'background 0.8s ease',
         }}
       >
-        {children}
+        {/* Day theme: mountain/lake background image with warm cream overlay */}
+        {!isNight && (
+          <>
+            <div
+              className="pointer-events-none absolute inset-0 z-0"
+              style={{
+                backgroundImage: 'url(/assets/images/background/background.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center top',
+                backgroundRepeat: 'no-repeat',
+              }}
+              aria-hidden="true"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 z-[1]"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255,248,238,0.18) 0%, rgba(255,246,232,0.12) 38%, rgba(255,240,218,0.15) 100%)',
+              }}
+              aria-hidden="true"
+            />
+          </>
+        )}
+        <div className={isNight ? undefined : 'relative z-[2]'}>
+          {children}
+        </div>
       </main>
     </div>
   );

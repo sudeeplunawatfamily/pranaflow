@@ -3,6 +3,8 @@ import { Wind, Repeat2 } from 'lucide-react';
 
 export default function BreathingMethodSelector({ isBoxBreathing, onToggle, theme = 'night' }) {
   const isNight = theme === 'night';
+  const inhaleAccent = isNight ? '#60A5FA' : '#4A8FE7';
+  const holdAccent = isNight ? '#A78BFA' : '#8B6AD8';
 
   return (
     <motion.div
@@ -16,18 +18,16 @@ export default function BreathingMethodSelector({ isBoxBreathing, onToggle, them
         type="button"
         onClick={() => onToggle(false)}
         whileActive={{ scale: 0.97 }}
-        className={`flex-1 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all border ${
-          !isBoxBreathing
-            ? 'border-[#60A5FA] shadow-[0_0_12px_rgba(96,165,250,0.3)]'
-            : 'border-[var(--theme-surface-border)]'
-        }`}
+        className={`flex-1 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all border`}
         style={{
+          borderColor: !isBoxBreathing ? inhaleAccent : 'var(--theme-surface-border)',
+          boxShadow: !isBoxBreathing ? `0 0 12px ${inhaleAccent}44` : 'none',
           backgroundColor: !isBoxBreathing
             ? isNight
               ? 'rgba(96,165,250,0.15)'
-              : 'rgba(36,135,234,0.08)'
-            : 'var(--theme-surface)',
-          color: !isBoxBreathing ? '#60A5FA' : 'var(--theme-text-secondary)',
+              : 'rgba(74,143,231,0.08)'
+            : isNight ? 'var(--theme-surface)' : 'rgba(255,250,242,0.88)',
+          color: !isBoxBreathing ? inhaleAccent : 'var(--theme-text-secondary)',
         }}
       >
         <Wind size={16} strokeWidth={2} />
@@ -40,18 +40,16 @@ export default function BreathingMethodSelector({ isBoxBreathing, onToggle, them
           type="button"
           onClick={() => onToggle(true)}
           whileActive={{ scale: 0.97 }}
-          className={`w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all border ${
-            isBoxBreathing
-              ? 'border-[#A78BFA] shadow-[0_0_12px_rgba(167,139,250,0.3)]'
-              : 'border-[var(--theme-surface-border)]'
-          }`}
+          className={`w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all border`}
           style={{
+            borderColor: isBoxBreathing ? holdAccent : 'var(--theme-surface-border)',
+            boxShadow: isBoxBreathing ? `0 0 12px ${holdAccent}44` : 'none',
             backgroundColor: isBoxBreathing
               ? isNight
                 ? 'rgba(167,139,250,0.15)'
-                : 'rgba(135,85,232,0.08)'
-              : 'var(--theme-surface)',
-            color: isBoxBreathing ? '#A78BFA' : 'var(--theme-text-secondary)',
+                : 'rgba(139,106,216,0.08)'
+              : isNight ? 'var(--theme-surface)' : 'rgba(255,250,242,0.88)',
+            color: isBoxBreathing ? holdAccent : 'var(--theme-text-secondary)',
           }}
         >
           <Repeat2 size={16} strokeWidth={2} />

@@ -7,13 +7,13 @@ import CharacterBackdrop from './CharacterBackdrop';
 import PrimaryButton from './PrimaryButton';
 
 const moodConfig = [
-  { name: 'Calm', Icon: Smile, color: '#60A5FA' },
-  { name: 'Refreshed', Icon: Leaf, color: '#22D3EE' },
-  { name: 'Sleepy', Icon: Moon, color: '#A78BFA' },
-  { name: 'Focused', Icon: Target, color: '#60A5FA' },
+  { name: 'Calm', Icon: Smile, color: '#4A8FE7' },
+  { name: 'Refreshed', Icon: Leaf, color: '#37AAA4' },
+  { name: 'Sleepy', Icon: Moon, color: '#8B6AD8' },
+  { name: 'Focused', Icon: Target, color: '#4A8FE7' },
 ];
 
-const SPARKLE_COLORS = ['#60A5FA', '#22D3EE', '#A78BFA', '#60A5FA', '#22D3EE', '#A78BFA'];
+const SPARKLE_COLORS = ['#4A8FE7', '#37AAA4', '#8B6AD8', '#4A8FE7', '#37AAA4', '#8B6AD8'];
 
 export default function CompletionScreen({ settings, durationSeconds, onRepeat, onChangeRhythm, onHome, onMoodChange, theme = 'night' }) {
   const [selectedMood, setSelectedMood] = useState(null);
@@ -21,12 +21,14 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
   const isNight = theme === 'night';
 
   const completionUi = {
-    cardShadow: isNight ? '0 12px 30px rgba(15,23,42,0.22)' : '0 12px 30px rgba(36,135,234,0.14)',
-    metricIconBg: isNight ? '#334155' : '#EAF6FF',
+    cardShadow: isNight ? '0 12px 30px rgba(15,23,42,0.22)' : '0 12px 30px rgba(75,54,33,0.10)',
+    metricIconBg: isNight ? '#334155' : 'rgba(255,245,228,0.90)',
     moodSelectedBg: isNight
       ? 'color-mix(in srgb, var(--theme-surface) 80%, #334155)'
-      : 'color-mix(in srgb, var(--theme-surface) 85%, #EAF6FF)',
-    homeButtonShadow: isNight ? '0 8px 18px rgba(15,23,42,0.2)' : '0 8px 18px rgba(36,135,234,0.14)',
+      : 'rgba(255,248,236,0.95)',
+    homeButtonShadow: isNight ? '0 8px 18px rgba(15,23,42,0.2)' : '0 8px 18px rgba(75,54,33,0.10)',
+    cardBg: isNight ? 'var(--theme-surface)' : 'rgba(255,250,242,0.92)',
+    cardBorder: isNight ? 'var(--theme-surface-border)' : 'rgba(120,90,55,0.12)',
   };
 
   useEffect(() => {
@@ -66,11 +68,18 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
 
       <div className="relative z-[1] mt-2 flex items-center justify-center gap-2">
         <img src="/assets/icons/logo_lotus.svg" alt="PranaFlow logo" className="h-8 w-8" />
-        <p className="font-display text-2xl font-extrabold text-[#60A5FA]">PranaFlow</p>
+        <p className={`text-2xl font-extrabold ${isNight ? 'font-display' : 'font-serif-display'}`} style={{ color: 'var(--theme-brand)' }}>PranaFlow</p>
       </div>
 
-      <h2 className="font-display relative z-[1] mt-3 text-[32px] font-extrabold leading-none" style={{ color: 'var(--theme-text-primary)' }}>Beautiful work.</h2>
-      <p className="relative z-[1] mt-1 text-base" style={{ color: 'var(--theme-text-secondary)' }}>You completed <span className="font-extrabold text-[#60A5FA]">{settings.rounds}</span> rounds.</p>
+      <h2
+        className={`relative z-[1] mt-3 text-[32px] font-extrabold leading-none ${isNight ? 'font-display' : 'font-serif-display'}`}
+        style={{ color: 'var(--theme-text-primary)' }}
+      >
+        {isNight ? 'Beautiful work.' : 'Flow Complete'}
+      </h2>
+      <p className="relative z-[1] mt-1 text-base" style={{ color: 'var(--theme-text-secondary)' }}>
+        You completed <span className="font-extrabold" style={{ color: 'var(--theme-brand)' }}>{settings.rounds}</span> rounds.
+      </p>
 
       <CharacterBackdrop className="mt-3" glowSizeClass="h-56 w-56">
           <img src="/assets/images/Hold_pose.png" alt="Completion yoga pose" className="relative z-10 mx-auto w-[240px] object-contain" />
@@ -79,13 +88,13 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
       <section
         className="mt-3 rounded-3xl border p-3 text-left"
         style={{
-          borderColor: 'var(--theme-surface-border)',
-          backgroundColor: 'var(--theme-surface)',
+          borderColor: completionUi.cardBorder,
+          backgroundColor: completionUi.cardBg,
           boxShadow: completionUi.cardShadow,
         }}
       >
         <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-full text-[#60A5FA]" style={{ backgroundColor: completionUi.metricIconBg }}>
+          <span className="grid h-11 w-11 place-items-center rounded-full" style={{ backgroundColor: completionUi.metricIconBg, color: 'var(--theme-brand)' }}>
             <Clock size={20} />
           </span>
           <div>
@@ -93,12 +102,12 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
             <p className="text-[28px] font-extrabold" style={{ color: 'var(--theme-text-primary)' }}>{formatTime(durationSeconds)}</p>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-3 border-t pt-3" style={{ borderColor: 'var(--theme-surface-border)' }}>
+        <div className="mt-3 flex items-center gap-3 border-t pt-3" style={{ borderColor: completionUi.cardBorder }}>
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full" style={{ backgroundColor: completionUi.metricIconBg }}>
             <span className="flex items-center gap-0.5">
-              <Wind size={9} color="#60A5FA" />
-              <Pause size={9} color="#A78BFA" />
-              <Waves size={9} color="#22D3EE" />
+              <Wind size={9} color="#4A8FE7" />
+              <Pause size={9} color="#8B6AD8" />
+              <Waves size={9} color="#37AAA4" />
             </span>
           </span>
           <div>
@@ -107,19 +116,19 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
               {settings.boxBreathing ? (
                 <>
                   <span style={{ color: 'var(--theme-text-secondary)' }}>Box.</span>
-                  <span className="text-[#60A5FA]">{settings.inhaleSeconds}s</span>
+                  <span style={{ color: '#4A8FE7' }}>{settings.inhaleSeconds}s</span>
                   <span style={{ color: 'var(--theme-text-secondary)' }}>.</span>
-                  <span className="text-[#A78BFA]">{settings.holdSeconds}s</span>
+                  <span style={{ color: '#8B6AD8' }}>{settings.holdSeconds}s</span>
                   <span style={{ color: 'var(--theme-text-secondary)' }}>.</span>
-                  <span className="text-[#22D3EE]">{settings.exhaleSeconds}s</span>
+                  <span style={{ color: '#37AAA4' }}>{settings.exhaleSeconds}s</span>
                 </>
               ) : (
                 <>
-                  <span className="text-[#60A5FA]">{settings.inhaleSeconds}s</span>
+                  <span style={{ color: '#4A8FE7' }}>{settings.inhaleSeconds}s</span>
                   <span style={{ color: 'var(--theme-text-secondary)' }}> · </span>
-                  <span className="text-[#A78BFA]">{settings.holdSeconds}s</span>
+                  <span style={{ color: '#8B6AD8' }}>{settings.holdSeconds}s</span>
                   <span style={{ color: 'var(--theme-text-secondary)' }}> · </span>
-                  <span className="text-[#22D3EE]">{settings.exhaleSeconds}s</span>
+                  <span style={{ color: '#37AAA4' }}>{settings.exhaleSeconds}s</span>
                 </>
               )}
               <span className="ml-1 text-[12px] font-semibold" style={{ color: 'var(--theme-text-secondary)' }}>· {settings.rounds} rounds</span>
@@ -131,13 +140,12 @@ export default function CompletionScreen({ settings, durationSeconds, onRepeat, 
       <section
         className="mt-3 rounded-3xl border p-3 text-left"
         style={{
-          borderColor: 'var(--theme-surface-border)',
-          backgroundColor: 'var(--theme-surface)',
+          borderColor: completionUi.cardBorder,
+          backgroundColor: completionUi.cardBg,
           boxShadow: completionUi.cardShadow,
         }}
       >
         <p className="text-[13px] font-semibold" style={{ color: 'var(--theme-text-secondary)' }}>Take a moment. How do you feel?</p>
-        <p className="text-base font-bold" style={{ color: 'var(--theme-text-primary)' }}>How do you feel now?</p>
         <div className="mt-2 grid grid-cols-4 gap-2">
           {moodConfig.map(({ name, Icon, color }) => {
             const selected = selectedMood === name;

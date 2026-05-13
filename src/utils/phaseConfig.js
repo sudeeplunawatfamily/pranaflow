@@ -4,21 +4,21 @@ export const phaseConfig = {
     displayLabel: 'Breathe In',
     instruction: 'Breathe in...',
     image: '/assets/images/Inhale_pose.png',
-    color: '#2487EA',
+    color: '#4A8FE7',
   },
   hold: {
     label: 'Hold',
     displayLabel: 'Hold',
     instruction: 'Hold...',
     image: '/assets/images/Hold_pose.png',
-    color: '#8755E8',
+    color: '#8B6AD8',
   },
   exhale: {
     label: 'Exhale',
     displayLabel: 'Breathe Out',
     instruction: 'Release...',
     image: '/assets/images/Exhale_pose.png',
-    color: '#20B8C4',
+    color: '#37AAA4',
   },
 };
 

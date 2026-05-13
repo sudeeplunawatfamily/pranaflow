@@ -1,0 +1,21 @@
+
+> pranaflow@0.0.0 screenshots
+> node scripts/capture-screenshots.mjs
+
+
+> pranaflow@0.0.0 dev
+> vite --host 127.0.0.1 --port 4173
+
+
+  VITE v6.4.2  ready in 176 ms
+
+  ➜  Local:   http://127.0.0.1:4173/
+Saved screenshots/01-home.png
+locator.waitFor: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Save & Continue' }) to be visible[22m
+
+    at main (/Users/SLunawat/Documents/PranaFlow/scripts/capture-screenshots.mjs:164:67)
+    at async file:///Users/SLunawat/Documents/PranaFlow/scripts/capture-screenshots.mjs:217:1 {
+  name: 'TimeoutError'
+}
